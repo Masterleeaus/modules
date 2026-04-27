@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Extensions\Chatbot\System\Models;
+namespace TitanZero\FilamentChatbot\Models;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Casts\Attribute;

@@ -31,7 +31,22 @@ class ChatbotChannelResource extends Resource
                             ->relationship('chatbot', 'name')
                             ->required(),
                         Forms\Components\Select::make('type')
-                            ->options(['web' => 'Web', 'telegram' => 'Telegram', 'whatsapp' => 'WhatsApp', 'facebook' => 'Facebook'])
+                            ->options([
+                                'web'       => 'Web (Live Chat)',
+                                'telegram'  => 'Telegram',
+                                'whatsapp'  => 'WhatsApp',
+                                'sms'       => 'SMS',
+                                'facebook'  => 'Facebook',
+                                'messenger' => 'Facebook Messenger',
+                                'instagram' => 'Instagram',
+                                'twitter'   => 'Twitter / X',
+                                'email'     => 'Email',
+                                'line'      => 'LINE',
+                                'viber'     => 'Viber',
+                                'wechat'    => 'WeChat',
+                                'slack'     => 'Slack',
+                                'discord'   => 'Discord',
+                            ])
                             ->required(),
                         Forms\Components\TextInput::make('name')
                             ->required(),
@@ -58,7 +73,22 @@ class ChatbotChannelResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
-                    ->options(['web' => 'Web', 'telegram' => 'Telegram', 'whatsapp' => 'WhatsApp', 'facebook' => 'Facebook']),
+                    ->options([
+                        'web'       => 'Web (Live Chat)',
+                        'telegram'  => 'Telegram',
+                        'whatsapp'  => 'WhatsApp',
+                        'sms'       => 'SMS',
+                        'facebook'  => 'Facebook',
+                        'messenger' => 'Facebook Messenger',
+                        'instagram' => 'Instagram',
+                        'twitter'   => 'Twitter / X',
+                        'email'     => 'Email',
+                        'line'      => 'LINE',
+                        'viber'     => 'Viber',
+                        'wechat'    => 'WeChat',
+                        'slack'     => 'Slack',
+                        'discord'   => 'Discord',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

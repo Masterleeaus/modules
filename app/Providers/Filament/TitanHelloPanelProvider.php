@@ -17,6 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use TitanZero\FilamentChatbot\Filament\ChatbotPlugin;
 
 /**
  * TITAN HELLO — Lead Gen Management SPA Control Panel
@@ -45,6 +46,9 @@ class TitanHelloPanelProvider extends PanelProvider
                 'primary' => Color::Orange,
             ])
             ->login()
+            ->plugins([
+                ChatbotPlugin::make(),
+            ])
             ->discoverResources(
                 in: app_path('Filament/TitanHello/Resources'),
                 for: 'App\\Filament\\TitanHello\\Resources'
