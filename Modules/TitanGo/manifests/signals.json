@@ -1,0 +1,20 @@
+{
+    "module": "TitanGo",
+    "signals": [
+        {
+            "event": "JobStatusChanged",
+            "description": "Fired when a technician changes a job status via the PWA.",
+            "payload": ["job_id", "old_status", "new_status", "technician_id"]
+        },
+        {
+            "event": "TechnicianLocationUpdated",
+            "description": "Fired when a technician submits a GPS location ping.",
+            "payload": ["user_id", "latitude", "longitude", "heading", "speed", "recorded_at"]
+        },
+        {
+            "event": "OfflineSyncApplied",
+            "description": "Fired after a batch of offline mutations is successfully applied.",
+            "payload": ["technician_id", "mutation_count", "has_errors"]
+        }
+    ]
+}

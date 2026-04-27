@@ -1,0 +1,18 @@
+{
+    "module": "TitanGo",
+    "alias": "titango",
+    "version": "1.0.0",
+    "description": "Field technician PWA — offline-first job management, media capture, GPS tracking, and customer signature capture.",
+    "surface": "pwa",
+    "audience": "technician",
+    "capabilities": [
+        "offline_job_management",
+        "media_capture",
+        "gps_tracking",
+        "customer_signature",
+        "background_sync",
+        "route_sheet"
+    ],
+    "api_prefix": "/api/technician",
+    "requires_role": "technician"
+}

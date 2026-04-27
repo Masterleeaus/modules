@@ -102,6 +102,20 @@ registerRoute(
     'DELETE',
 );
 
+// Customer signature upload
+registerRoute(
+    ({ url, request }) => url.pathname.match(/^\/api\/technician\/jobs\/\d+\/signature$/) && request.method === 'POST',
+    new NetworkOnly({ plugins: [jobWritesQueue] }),
+    'POST',
+);
+
+// Offline batch sync endpoint
+registerRoute(
+    ({ url, request }) => url.pathname === '/api/technician/sync' && request.method === 'POST',
+    new NetworkOnly({ plugins: [jobWritesQueue] }),
+    'POST',
+);
+
 // ── Notify clients when the SW takes over ────────────────────────────────────
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {

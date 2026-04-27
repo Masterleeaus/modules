@@ -22,8 +22,6 @@ use App\Http\Controllers\CmsPageController;
 use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\PublicEstimateController;
-use App\Http\Controllers\Technician\DashboardController as TechnicianDashboardController;
-use App\Http\Controllers\Technician\JobController as TechnicianJobController;
 use Illuminate\Support\Facades\Route;
 
 // Root: guests see the marketing page; authenticated users go to their dashboard
@@ -154,14 +152,7 @@ Route::get('/estimates/{token}', [PublicEstimateController::class, 'show'])->nam
 Route::post('/estimates/{token}/accept', [PublicEstimateController::class, 'accept'])->name('public.estimates.accept');
 Route::post('/estimates/{token}/decline', [PublicEstimateController::class, 'decline'])->name('public.estimates.decline');
 
-Route::middleware(['auth', 'role:technician'])
-    ->prefix('technician')
-    ->name('technician.')
-    ->group(function () {
-        Route::get('/dashboard', [TechnicianDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/jobs', [TechnicianJobController::class, 'index'])->name('jobs.index');
-        Route::get('/jobs/{job}', [TechnicianJobController::class, 'show'])->name('jobs.show');
-    });
+// Technician web routes are registered by the TitanGo module's RouteServiceProvider.
 
 // Health checks — no auth, no CSRF, used by uptime monitors and orchestrators
 Route::get('/health', [HealthController::class, 'liveness'])->name('health');
