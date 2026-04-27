@@ -1,0 +1,22 @@
+@config "../../../../../../tailwind.external-chatbot.config.js";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+	.lqd-ext-chatbot {
+		--primary: var(--lqd-ext-chat-primary);
+		--primary-foreground: var(--lqd-ext-chat-primary-foreground);
+		--background: hsl(from var(--lqd-ext-chat-window-bg) h s l);
+		--foreground: 0 0% 13%;
+	}
+}
+
+@layer components {
+
+	[x-cloak] {
+		display: none !important;
+	}
+}
