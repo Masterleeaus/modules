@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Owner;
 
+use App\Events\EstimateSent;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Estimate;
@@ -209,7 +210,7 @@ class EstimateController extends Controller
             'sent_at' => now(),
         ]);
 
-        // TODO: dispatch EstimateSent notification (email/SMS) in Milestone 5
+        EstimateSent::dispatch($estimate);
 
         return redirect()->route('owner.estimates.show', $estimate)
             ->with('success', 'Estimate sent.');
