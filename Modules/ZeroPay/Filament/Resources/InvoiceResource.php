@@ -2,7 +2,10 @@
 
 namespace Modules\ZeroPay\Filament\Resources;
 
+use App\Actions\Invoices\RecordPaymentAction;
+use App\Actions\Invoices\VoidInvoiceAction;
 use App\Models\Invoice;
+use App\Models\Payment;
 use Filament\Actions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -82,6 +85,50 @@ class InvoiceResource extends Resource
                 TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
+                Actions\Action::make('record_payment')
+                    ->label('Record Payment')
+                    ->icon('heroicon-o-banknotes')
+                    ->color('success')
+                    ->visible(fn (Invoice $record): bool =>
+                        ! in_array($record->status, [Invoice::STATUS_VOID, Invoice::STATUS_PAID])
+                    )
+                    ->form([
+                        TextInput::make('amount')
+                            ->label('Amount')
+                            ->numeric()
+                            ->required()
+                            ->minValue(0.01),
+                        Select::make('method')
+                            ->label('Method')
+                            ->options([
+                                Payment::METHOD_CASH          => 'Cash',
+                                Payment::METHOD_CHECK         => 'Check',
+                                Payment::METHOD_CARD          => 'Card',
+                                Payment::METHOD_BANK_TRANSFER => 'Bank Transfer',
+                            ])
+                            ->required(),
+                        TextInput::make('reference')
+                            ->label('Reference')
+                            ->maxLength(255)
+                            ->nullable(),
+                        DatePicker::make('paid_at')
+                            ->label('Payment Date')
+                            ->required(),
+                    ])
+                    ->action(function (Invoice $record, array $data): void {
+                        app(RecordPaymentAction::class)->execute($record, $data, auth()->id());
+                    }),
+                Actions\Action::make('void')
+                    ->label('Void')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn (Invoice $record): bool =>
+                        ! in_array($record->status, [Invoice::STATUS_VOID, Invoice::STATUS_PAID])
+                    )
+                    ->action(function (Invoice $record): void {
+                        app(VoidInvoiceAction::class)->execute($record);
+                    }),
                 Actions\EditAction::make(),
             ])
             ->toolbarActions([
