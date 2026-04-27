@@ -1,0 +1,16 @@
+{
+  "module_id": "EInvoice",
+  "version": "1.0.0",
+  "install": [
+    "RunMigrations",
+    "SeedDefaultData",
+    "RegisterPermissions",
+    "SeedDefaultTemplates"
+  ],
+  "post_install": [
+    "VerifyDatabaseTables",
+    "VerifyPermissionsRegistered"
+  ],
+  "upgrade": {},
+  "rollback": []
+}
