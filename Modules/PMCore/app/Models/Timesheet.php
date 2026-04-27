@@ -33,6 +33,16 @@ class Timesheet extends Model implements Auditable
         'status',
         'approved_by_id',
         'approved_at',
+        // Clock-in/out & award rates
+        'clock_in_at',
+        'clock_out_at',
+        'clock_in_lat',
+        'clock_out_lat',
+        'clock_in_lng',
+        'clock_out_lng',
+        'travel_minutes',
+        'award_rate_type',
+        'award_rate_multiplier',
     ];
 
     protected $casts = [
@@ -45,6 +55,15 @@ class Timesheet extends Model implements Auditable
         'is_billable' => 'boolean',
         'approved_at' => 'datetime',
         'status' => TimesheetStatus::class,
+        // Clock-in/out
+        'clock_in_at' => 'datetime',
+        'clock_out_at' => 'datetime',
+        'clock_in_lat' => 'decimal:7',
+        'clock_out_lat' => 'decimal:7',
+        'clock_in_lng' => 'decimal:7',
+        'clock_out_lng' => 'decimal:7',
+        'travel_minutes' => 'integer',
+        'award_rate_multiplier' => 'decimal:2',
     ];
 
     /**
@@ -360,5 +379,36 @@ class Timesheet extends Model implements Auditable
         $this->update(['status' => TimesheetStatus::SUBMITTED]);
 
         return true;
+    }
+
+    /**
+     * Record the worker's clock-in time and GPS coordinates.
+     */
+    public function clockIn(float $lat, float $lng): void
+    {
+        $this->update([
+            'clock_in_at'  => now(),
+            'clock_in_lat' => $lat,
+            'clock_in_lng' => $lng,
+        ]);
+    }
+
+    /**
+     * Record the worker's clock-out time, GPS coordinates,
+     * and auto-calculate hours from clock-in/out duration.
+     */
+    public function clockOut(float $lat, float $lng): void
+    {
+        $clockIn = $this->clock_in_at ?? now();
+        $clockOut = now();
+        $minutes = $clockIn->diffInMinutes($clockOut);
+        $hours = round($minutes / 60, 2);
+
+        $this->update([
+            'clock_out_at'  => $clockOut,
+            'clock_out_lat' => $lat,
+            'clock_out_lng' => $lng,
+            'hours'         => $hours,
+        ]);
     }
 }

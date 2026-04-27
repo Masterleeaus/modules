@@ -18,6 +18,7 @@ class PMCoreDatabaseSeeder extends Seeder
             ProjectTaskSeeder::class,
             TimesheetSeeder::class,
             ResourceAllocationSeeder::class,
+            \Modules\PMCore\database\seeders\CleaningChecklistSeeder::class,
         ]);
     }
 }

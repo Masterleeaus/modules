@@ -1,0 +1,12 @@
+{
+    "name": "Biometric",
+    "alias": "biometric",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Biometric\\Providers\\BiometricServiceProvider",
+        "Modules\\Biometric\\Providers\\EventServiceProvider"
+    ],
+    "files": []
+}

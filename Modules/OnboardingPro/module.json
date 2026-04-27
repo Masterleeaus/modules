@@ -1,11 +1,11 @@
 {
   "name": "OnboardingPro",
   "alias": "onboardingpro",
-  "description": "Guided user onboarding — banners, surveys, introduction styles, completion tracking.",
-  "keywords": ["onboarding", "banner", "survey", "wizard"],
+  "description": "Guided user onboarding — banners, surveys, introduction styles, completion tracking, flows, and NPS triggers.",
+  "keywords": ["onboarding", "banner", "survey", "wizard", "flow", "nps"],
   "active": 1,
   "order": 0,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "providers": [
     "Modules\\OnboardingPro\\Providers\\OnboardingProServiceProvider"
   ],
@@ -14,13 +14,15 @@
   "requires": [],
   "permissions": [
     "view_onboarding",
-    "manage_onboarding"
+    "manage_onboarding",
+    "manage_onboarding_flows",
+    "view_onboarding_flows"
   ],
   "roles_permissions": {
-    "admin": ["view_onboarding", "manage_onboarding"],
-    "manager": ["view_onboarding"],
-    "employee": ["view_onboarding"],
-    "client": ["view_onboarding"]
+    "admin": ["view_onboarding", "manage_onboarding", "manage_onboarding_flows", "view_onboarding_flows"],
+    "manager": ["view_onboarding", "view_onboarding_flows"],
+    "employee": ["view_onboarding", "view_onboarding_flows"],
+    "client": ["view_onboarding", "view_onboarding_flows"]
   },
   "menus": [
     {

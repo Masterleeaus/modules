@@ -1,0 +1,17 @@
+{
+    "name": "Purchase",
+    "alias": "purchase",
+    "description": "",
+    "keywords": [],
+    "active": 1,
+    "order": 2,
+    "priority": 0,
+    "providers": [
+        "Modules\\Purchase\\Providers\\PurchaseServiceProvider",
+        "Modules\\Purchase\\Providers\\EventServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "Helper/start.php"
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "name": "Accountings",
+    "alias": "accountings",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Accountings\\Providers\\AccountingsServiceProvider",
+        "Modules\\Accountings\\Providers\\EventServiceProvider"
+    ],
+    "files": [],
+    "version": "1.0.1"
+}

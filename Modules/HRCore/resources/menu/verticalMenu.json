@@ -1,0 +1,223 @@
+{
+    "menu": [
+        {
+            "name": "Self Service",
+            "icon": "menu-icon bx bx-user-circle",
+            "slug": [
+                "hrcore.my.profile",
+                "hrcore.my.attendance",
+                "hrcore.my.attendance.regularization",
+                "hrcore.my.leaves",
+                "hrcore.my.leaves.balance",
+                "hrcore.my.leaves.apply",
+                "hrcore.my.expenses",
+                "hrcore.my.expenses.create",
+                "hrcore.my.holidays",
+                "hrcore.my.reports"
+            ],
+            "submenu": [
+                {
+                    "url": "/hrcore/my/profile",
+                    "name": "My Profile",
+                    "slug": "hrcore.my.profile"
+                },
+                {
+                    "url": "/hrcore/my/attendance",
+                    "name": "My Attendance",
+                    "slug": "hrcore.my.attendance"
+                },
+                {
+                    "url": "/hrcore/my/attendance/regularization",
+                    "name": "My Regularization",
+                    "slug": "hrcore.my.attendance.regularization"
+                },
+                {
+                    "url": "/hrcore/my/leaves",
+                    "name": "My Leave Requests",
+                    "slug": "hrcore.my.leaves"
+                },
+                {
+                    "url": "/hrcore/my/leaves/balance",
+                    "name": "My Leave Balance",
+                    "slug": "hrcore.my.leaves.balance"
+                },
+                {
+                    "url": "/hrcore/my/leaves/apply",
+                    "name": "Apply for Leave",
+                    "slug": "hrcore.my.leaves.apply"
+                },
+                {
+                    "url": "/hrcore/my/expenses",
+                    "name": "My Expenses",
+                    "slug": "hrcore.my.expenses"
+                },
+                {
+                    "url": "/hrcore/my/expenses/create",
+                    "name": "Create Expense",
+                    "slug": "hrcore.my.expenses.create"
+                },
+                {
+                    "url": "/hrcore/my/holidays",
+                    "name": "My Holidays",
+                    "slug": "hrcore.my.holidays"
+                },
+                {
+                    "url": "/hrcore/my/reports",
+                    "name": "My Reports",
+                    "slug": "hrcore.my.reports"
+                }
+            ]
+        },
+        {
+            "name": "Employee Management",
+            "icon": "menu-icon bx bx-group",
+            "slug": [
+                "hrcore.employees.index"
+            ],
+            "submenu": [
+                {
+                    "url": "/hrcore/employees",
+                    "name": "All Employees",
+                    "slug": "hrcore.employees.index"
+                }
+            ]
+        },
+        {
+            "name": "Attendance Management",
+            "icon": "menu-icon bx bx-time-five",
+            "slug": [
+                "hrcore.attendance.index",
+                "hrcore.attendance.web-attendance",
+                "hrcore.attendance-regularization.index",
+                "hrcore.attendance-dashboard.index",
+                "hrcore.shifts.index"
+            ],
+            "submenu": [
+                {
+                    "url": "/hrcore/shifts",
+                    "name": "Shifts",
+                    "slug": "hrcore.shifts.index"
+                },
+                {
+                    "url": "/hrcore/attendance-dashboard",
+                    "name": "Manager Dashboard",
+                    "slug": "hrcore.attendance-dashboard.index"
+                },
+                {
+                    "url": "/hrcore/attendance",
+                    "name": "All Attendance Records",
+                    "slug": "hrcore.attendance.index"
+                },
+                {
+                    "url": "/hrcore/attendance/web-attendance",
+                    "name": "Web Check-in Station",
+                    "slug": "hrcore.attendance.web-attendance"
+                },
+                {
+                    "url": "/hrcore/attendance-regularization",
+                    "name": "Regularization Management",
+                    "slug": "hrcore.attendance-regularization.index"
+                }
+            ]
+        },
+        {
+            "name": "Leave Management",
+            "icon": "menu-icon bx bx-calendar-x",
+            "slug": [
+                "hrcore.leaves.index",
+                "hrcore.leaves.team",
+                "hrcore.compensatory-offs.index",
+                "hrcore.compensatory-offs.create",
+                "hrcore.compensatory-offs.show",
+                "hrcore.compensatory-offs.edit",
+                "hrcore.leave-types.index",
+                "hrcore.leave-balance.index"
+            ],
+            "submenu": [
+                {
+                    "url": "/hrcore/leaves",
+                    "name": "All Leave Requests",
+                    "slug": "hrcore.leaves.index"
+                },
+                {
+                    "url": "/hrcore/compensatory-offs",
+                    "name": "Compensatory Offs",
+                    "slug": "hrcore.compensatory-offs.index"
+                },
+                {
+                    "url": "/hrcore/leaves/team",
+                    "name": "Team Calendar",
+                    "slug": "hrcore.leaves.team"
+                },
+                {
+                    "url": "/hrcore/leave-types",
+                    "name": "Leave Types",
+                    "slug": "hrcore.leave-types.index"
+                },
+                {
+                    "url": "/hrcore/leave-balance",
+                    "name": "Balance Management",
+                    "slug": "hrcore.leave-balance.index"
+                }
+            ]
+        },
+        {
+            "name": "Expense Management",
+            "icon": "menu-icon bx bx-receipt",
+            "slug": [
+                "hrcore.expenses.index",
+                "hrcore.expense-types.index"
+            ],
+            "submenu": [
+                {
+                    "url": "/hrcore/expenses",
+                    "name": "All Expenses",
+                    "slug": "hrcore.expenses.index"
+                },
+                {
+                    "url": "/hrcore/expense-types",
+                    "name": "Expense Types",
+                    "slug": "hrcore.expense-types.index"
+                }
+            ]
+        },
+        {
+            "name": "Company Structure",
+            "icon": "menu-icon bx bx-building",
+            "slug": [
+                "hrcore.teams.index",
+                "hrcore.departments.index",
+                "hrcore.designations.index",
+                "hrcore.organization-hierarchy.index",
+                "hrcore.holidays.index"
+            ],
+            "submenu": [
+                {
+                    "url": "/hrcore/teams",
+                    "name": "Teams",
+                    "slug": "hrcore.teams.index"
+                },
+                {
+                    "url": "/hrcore/departments",
+                    "name": "Departments",
+                    "slug": "hrcore.departments.index"
+                },
+                {
+                    "url": "/hrcore/designations",
+                    "name": "Designations",
+                    "slug": "hrcore.designations.index"
+                },
+                {
+                    "url": "/hrcore/holidays",
+                    "name": "Holiday Calendar",
+                    "slug": "hrcore.holidays.index"
+                },
+                {
+                    "url": "/hrcore/organization-hierarchy",
+                    "name": "Organization Hierarchy",
+                    "slug": "hrcore.organization-hierarchy.index"
+                }
+            ]
+        }
+    ]
+}

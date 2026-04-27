@@ -428,4 +428,49 @@ class TimesheetController extends Controller
 
         return Success::response(['statistics' => $stats]);
     }
+
+    /**
+     * Clock in — record start time and GPS position for a timesheet.
+     */
+    public function clockIn(Request $request, Timesheet $timesheet)
+    {
+        if ($timesheet->user_id !== Auth::id()) {
+            return Error::response(__('You can only clock in on your own timesheets.'));
+        }
+
+        $validated = $request->validate([
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+        ]);
+
+        $timesheet->clockIn((float) $validated['lat'], (float) $validated['lng']);
+
+        return Success::response([
+            'message'     => __('Clocked in successfully.'),
+            'clock_in_at' => $timesheet->fresh()->clock_in_at,
+        ]);
+    }
+
+    /**
+     * Clock out — record end time and GPS position, auto-calculate hours.
+     */
+    public function clockOut(Request $request, Timesheet $timesheet)
+    {
+        if ($timesheet->user_id !== Auth::id()) {
+            return Error::response(__('You can only clock out on your own timesheets.'));
+        }
+
+        $validated = $request->validate([
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+        ]);
+
+        $timesheet->clockOut((float) $validated['lat'], (float) $validated['lng']);
+
+        return Success::response([
+            'message'      => __('Clocked out successfully.'),
+            'clock_out_at' => $timesheet->fresh()->clock_out_at,
+            'hours'        => $timesheet->fresh()->hours,
+        ]);
+    }
 }

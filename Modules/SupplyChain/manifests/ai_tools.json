@@ -1,0 +1,9 @@
+{
+  "module": "SupplyChain",
+  "version": "1.0.0",
+  "tools": [
+    "supplychain.low_stock_report",
+    "supplychain.generate_purchase_order",
+    "supplychain.supplier_price_compare"
+  ]
+}

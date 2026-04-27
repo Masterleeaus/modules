@@ -1,0 +1,12 @@
+{
+  "prefix": "/api/clean-quality",
+  "endpoints": [
+    "GET /inspections",
+    "POST /inspections",
+    "GET /quality-checks",
+    "POST /quality-checks/{id}/score",
+    "POST /inspections/{id}/authorise-reclean",
+    "POST /quality-reports/{id}/generate"
+  ]
+}
+

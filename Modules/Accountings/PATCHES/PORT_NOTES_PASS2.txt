@@ -1,0 +1,11 @@
+PASS 2 – Cashflow+ port notes
+
+Implemented:
+- acc_coa.is_cash_account (migration) + checkbox in COA create/edit
+- CashflowService using tagged COA (fallback heuristic only if none tagged)
+- Cashflow forecast page (naive last-net projection placeholder)
+
+Next ports from the other modules (already exported in PATCHES/ExportedCashflowFromAccountingSuite):
+- Proper cashflow classification based on bank/cash accounts, not description.
+- Forecast that joins budgets + recurring expenses + expected receivables/payables.
+- Bank statement import + reconciliation (if you want).

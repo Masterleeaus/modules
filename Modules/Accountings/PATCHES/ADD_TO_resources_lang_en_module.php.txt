@@ -1,0 +1,13 @@
+If your Worksuite UI shows: module.accountings.module
+that means the core translation key is missing.
+
+Edit your core file:
+  resources/lang/en/module.php
+
+Add / merge this entry into the returned array:
+
+'accountings' => [
+    'module' => 'Accounting',
+],
+
+(Do NOT delete other existing module entries.)

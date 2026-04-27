@@ -11,6 +11,12 @@ use Modules\TitanIntegrations\Services\Integrations\XeroIntegration;
 use Modules\TitanIntegrations\Services\Integrations\HubSpotIntegration;
 use Modules\TitanIntegrations\Services\Integrations\MailchimpIntegration;
 use Modules\TitanIntegrations\Services\Integrations\SlackIntegration;
+use Modules\TitanIntegrations\Services\Integrations\DeputyIntegration;
+use Modules\TitanIntegrations\Services\Integrations\StripeIntegration;
+use Modules\TitanIntegrations\Services\Integrations\TwilioIntegration;
+use Modules\TitanIntegrations\Services\Integrations\ServiceM8Integration;
+use Modules\TitanIntegrations\Services\Integrations\GoogleMapsIntegration;
+use Modules\TitanIntegrations\Services\Integrations\ZapierCleaningExtension;
 
 class TitanIntegrationsServiceProvider extends ServiceProvider
 {
@@ -41,6 +47,12 @@ class TitanIntegrationsServiceProvider extends ServiceProvider
         $this->app->singleton(HubSpotIntegration::class);
         $this->app->singleton(MailchimpIntegration::class);
         $this->app->singleton(SlackIntegration::class);
+        $this->app->singleton(DeputyIntegration::class);
+        $this->app->singleton(StripeIntegration::class);
+        $this->app->singleton(TwilioIntegration::class);
+        $this->app->singleton(ServiceM8Integration::class);
+        $this->app->singleton(GoogleMapsIntegration::class);
+        $this->app->singleton(ZapierCleaningExtension::class);
     }
 
     protected function registerRoutes(): void

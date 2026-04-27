@@ -36,10 +36,16 @@ class VaultDocument extends BaseModel
         'client_id',
         'status',
         'expires_at',
+        'folder',
+        'job_ref',
+        'document_type',
+        'expiry_alert_days',
+        'expiry_notified_at',
     ];
 
     protected $casts = [
-        'expires_at' => 'datetime',
+        'expires_at'          => 'datetime',
+        'expiry_notified_at'  => 'datetime',
     ];
 
     // -------------------------------------------------------------------------

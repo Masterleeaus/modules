@@ -41,3 +41,15 @@ Route::middleware(['web', 'auth'])
         Route::post('/publish-requests/{id}/approve', [AdminInstantAdsController::class, 'approveRequest'])->name('publish-requests.approve');
         Route::post('/publish-requests/{id}/reject', [AdminInstantAdsController::class, 'rejectRequest'])->name('publish-requests.reject');
     });
+
+// Brand Kits & Template Library
+Route::middleware(['web', 'auth'])
+    ->prefix('account/instant-ads')
+    ->name('instant-ads.')
+    ->group(function () {
+        Route::get('/brand-kits', [\Modules\InstantAds\Http\Controllers\BrandKitController::class, 'index'])->name('brand-kits.index');
+        Route::post('/brand-kits', [\Modules\InstantAds\Http\Controllers\BrandKitController::class, 'store'])->name('brand-kits.store');
+        Route::post('/brand-kits/{kit}/default', [\Modules\InstantAds\Http\Controllers\BrandKitController::class, 'setDefault'])->name('brand-kits.default');
+        Route::get('/templates', [\Modules\InstantAds\Http\Controllers\TemplateLibraryController::class, 'index'])->name('templates.index');
+        Route::post('/templates/{template}/apply', [\Modules\InstantAds\Http\Controllers\TemplateLibraryController::class, 'applyTemplate'])->name('templates.apply');
+    });

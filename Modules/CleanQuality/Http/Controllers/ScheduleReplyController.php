@@ -1,0 +1,42 @@
+<?php
+namespace Modules\CleanQuality\Http\Controllers;
+
+use App\Helper\Files;
+use App\Helper\Reply;
+use App\Http\Controllers\AccountBaseController;
+use Modules\CleanQuality\Support\ModuleAccess;
+use Modules\CleanQuality\Entities\ScheduleFile;
+use Modules\CleanQuality\Entities\ScheduleReply;
+
+class ScheduleReplyController extends AccountBaseController
+{
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->pageTitle = 'app.menu.tickets';
+        $this->middleware(function ($request, $next) {
+            abort_403(! ModuleAccess::userHasModule($this->user));
+            return $next($request);
+        });
+    }
+
+    public function destroy($id)
+    {
+        $scheduleReply = ScheduleReply::findOrFail($id);
+        $this->deletePermission = ModuleAccess::permissionLevel('delete_quality_control');
+
+
+        $scheduleFiles = ScheduleFile::where('schedule_reply_id', $id)->get();
+
+        foreach ($scheduleFiles as $file) {
+            Files::deleteFile($file->hashname, 'schedule-files/' . $file->schedule_reply_id);
+            $file->delete();
+        }
+
+        ScheduleReply::destroy($id);
+        return Reply::success(__('messages.deleteSuccess'));
+
+    }
+
+}
