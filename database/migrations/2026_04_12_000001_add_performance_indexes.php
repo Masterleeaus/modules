@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
  * Dashboard:
  *  - invoices (organization_id, paid_at)  → revenue-this-week sum
  *  - invoices (organization_id, due_at)   → overdue invoice lookups
- *  - field_jobs (assigned_to, status, scheduled_at)  → unassigned / open jobs
+ *  - cleaning_jobs (assigned_to, status, scheduled_at)  → unassigned / open jobs
  *
  * Dispatch live map:
  *  - driver_locations (user_id, id DESC)  → latest-location-per-tech sub-query
@@ -24,8 +24,8 @@ return new class extends Migration
             $table->index(['organization_id', 'due_at'], 'invoices_org_due_at_idx');
         });
 
-        Schema::table('field_jobs', function (Blueprint $table) {
-            $table->index(['assigned_to', 'status', 'scheduled_at'], 'field_jobs_assigned_status_sched_idx');
+        Schema::table('cleaning_jobs', function (Blueprint $table) {
+            $table->index(['assigned_to', 'status', 'scheduled_at'], 'cleaning_jobs_assigned_status_sched_idx');
         });
     }
 
@@ -36,8 +36,8 @@ return new class extends Migration
             $table->dropIndex('invoices_org_due_at_idx');
         });
 
-        Schema::table('field_jobs', function (Blueprint $table) {
-            $table->dropIndex('field_jobs_assigned_status_sched_idx');
+        Schema::table('cleaning_jobs', function (Blueprint $table) {
+            $table->dropIndex('cleaning_jobs_assigned_status_sched_idx');
         });
     }
 };

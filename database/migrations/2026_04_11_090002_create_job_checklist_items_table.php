@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('job_checklist_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('job_id')
-                ->constrained('field_jobs')
+                ->constrained('cleaning_jobs')
                 ->cascadeOnDelete();
             $table->foreignId('job_type_checklist_item_id')
                 ->nullable()
