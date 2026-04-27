@@ -4,14 +4,12 @@ namespace Modules\TitanGo\Http\Controllers;
 
 use App\Events\JobStatusChanged;
 use App\Http\Controllers\Controller;
-use App\Models\Attachment;
 use App\Models\Item;
 use App\Models\Job;
 use App\Models\JobChecklistItem;
 use App\Models\JobLineItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Response;
 use Inertia\ResponseFactory;
@@ -161,44 +159,6 @@ class TechnicianJobController extends Controller
         ]);
 
         return response()->json(['status' => 'ok', 'data' => $item->fresh()]);
-    }
-
-    public function uploadPhoto(Request $request, Job $job): JsonResponse
-    {
-        abort_unless($job->assigned_to === $request->user()->id, 403);
-
-        $request->validate([
-            'photo' => ['required', 'file', 'image', 'max:10240'],
-            'tag'   => ['nullable', Rule::in(['before', 'after'])],
-        ]);
-
-        $disk = config('filesystems.attachment_disk', 'public');
-        $file = $request->file('photo');
-        $path = $file->store("jobs/{$job->id}/photos", $disk);
-
-        $attachment = $job->attachments()->create([
-            'organization_id' => $job->organization_id,
-            'uploaded_by'     => $request->user()->id,
-            'filename'        => $file->getClientOriginalName(),
-            'disk'            => $disk,
-            'path'            => $path,
-            'mime_type'       => $file->getMimeType(),
-            'size'            => $file->getSize(),
-            'tag'             => $request->input('tag'),
-        ]);
-
-        return response()->json(['status' => 'ok', 'data' => $attachment], 201);
-    }
-
-    public function deletePhoto(Request $request, Job $job, Attachment $attachment): JsonResponse
-    {
-        abort_unless($job->assigned_to === $request->user()->id, 403);
-        abort_unless($attachment->attachable_type === Job::class && $attachment->attachable_id === $job->id, 404);
-
-        Storage::disk($attachment->disk)->delete($attachment->path);
-        $attachment->delete();
-
-        return response()->json(['status' => 'ok']);
     }
 
     public function addLineItem(Request $request, Job $job): JsonResponse

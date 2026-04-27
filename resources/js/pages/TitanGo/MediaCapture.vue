@@ -1,37 +1,11 @@
 <script setup lang="ts">
 import TechnicianLayout from '@/layouts/TechnicianLayout.vue';
+import { useImageCompression } from '@/composables/useImageCompression';
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 // ── Image compression ─────────────────────────────────────────────────────────
-async function compressImage(file: File, maxKB = 800): Promise<Blob> {
-    return new Promise((resolve) => {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.onload = () => {
-            URL.revokeObjectURL(url);
-            const canvas = document.createElement('canvas');
-            const MAX_DIM = 1920;
-            let { width, height } = img;
-            if (width > MAX_DIM || height > MAX_DIM) {
-                if (width > height) { height = Math.round((height * MAX_DIM) / width); width = MAX_DIM; }
-                else { width = Math.round((width * MAX_DIM) / height); height = MAX_DIM; }
-            }
-            canvas.width = width;
-            canvas.height = height;
-            canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
-            const tryQuality = (q: number) => {
-                canvas.toBlob((blob) => {
-                    if (!blob) { resolve(new Blob()); return; }
-                    if (blob.size <= maxKB * 1024 || q <= 0.3) { resolve(blob); return; }
-                    tryQuality(Math.round((q - 0.1) * 10) / 10);
-                }, 'image/jpeg', q);
-            };
-            tryQuality(0.85);
-        };
-        img.src = url;
-    });
-}
+const { compressImage } = useImageCompression();
 
 const props = defineProps<{
     jobId: number;
