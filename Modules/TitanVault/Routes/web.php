@@ -7,6 +7,7 @@ use Modules\TitanVault\Http\Controllers\VaultApprovalController;
 use Modules\TitanVault\Http\Controllers\VaultCommentController;
 use Modules\TitanVault\Http\Controllers\ContentManagerSettingsController;
 use Modules\TitanVault\Http\Controllers\VaultProofController;
+use Modules\TitanVault\Http\Controllers\VaultComplianceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -73,6 +74,23 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account', 'as' => 'titan-vaul
 
     Route::post('admin/titan-vault/settings', [ContentManagerSettingsController::class, 'update'])
         ->name('settings.update');
+
+    // Compliance management
+    Route::get('vault/compliance', [VaultComplianceController::class, 'index'])
+        ->name('compliance.index');
+
+    Route::post('vault/compliance', [VaultComplianceController::class, 'store'])
+        ->name('compliance.store');
+
+    Route::get('vault/compliance/dashboard', [VaultComplianceController::class, 'dashboard'])
+        ->name('compliance.dashboard');
+
+    // Proof packs
+    Route::post('vault/proof-packs', [VaultProofController::class, 'createPack'])
+        ->name('proof_packs.create');
+
+    Route::post('vault/proof-packs/{pack}/send', [VaultProofController::class, 'sendPack'])
+        ->name('proof_packs.send');
 });
 
 // Public proof review routes (no auth required)
@@ -82,3 +100,10 @@ Route::group(['prefix' => 'vault/proof', 'as' => 'titan-vault.proof.'], function
     Route::post('{token}/approve', [VaultProofController::class, 'approve'])->name('approve');
     Route::post('{token}/revision', [VaultProofController::class, 'requestRevision'])->name('revision');
 });
+
+// Public client proof-pack approval routes (no auth required)
+Route::get('vault/approve/{token}', [VaultProofController::class, 'approvePack'])
+    ->name('titan-vault.client.approve');
+
+Route::post('vault/approve/{token}', [VaultProofController::class, 'clientApprove'])
+    ->name('titan-vault.client.approve.submit');

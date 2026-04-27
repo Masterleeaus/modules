@@ -1,0 +1,9 @@
+{
+  "name": "saassmart/worksuite-supplychain",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Modules\\SupplyChain\\": ""
+    }
+  }
+}

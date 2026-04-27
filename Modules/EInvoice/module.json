@@ -1,0 +1,28 @@
+{
+    "name": "EInvoice",
+    "alias": "einvoice",
+    "description": "Electronic invoicing integration (nWidart) with AI hooks",
+    "keywords": [
+        "invoice",
+        "einvoice",
+        "finance",
+        "ai"
+    ],
+    "priority": 0,
+    "active": 1,
+    "order": 2,
+    "providers": [
+        "Modules\\EInvoice\\Providers\\EInvoiceServiceProvider",
+        "Modules\\EInvoice\\Providers\\EventServiceProvider",
+        "Modules\\EInvoice\\Providers\\RouteServiceProvider"
+    ],
+    "aliases": {},
+    "files": [
+        "start.php"
+    ],
+    "permissions": [],
+    "roles_permissions": {
+        "admin": [],
+        "manager": []
+    }
+}

@@ -60,6 +60,7 @@ class PMCoreServiceProvider extends ServiceProvider
     {
         $this->commands([
             \Modules\PMCore\app\Console\UpdateTimesheetAmounts::class,
+            \Modules\PMCore\app\Console\GenerateRecurringJobs::class,
         ]);
     }
 

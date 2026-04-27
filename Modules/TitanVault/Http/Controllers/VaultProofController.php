@@ -2,6 +2,8 @@
 
 namespace Modules\TitanVault\Http\Controllers;
 
+use App\Helper\Reply;
+use App\Http\Controllers\AccountBaseController;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -10,9 +12,260 @@ use Modules\TitanVault\Entities\VaultActivityLog;
 use Modules\TitanVault\Entities\VaultApproval;
 use Modules\TitanVault\Entities\VaultDocument;
 use Modules\TitanVault\Entities\VaultDocumentComment;
+use Modules\TitanVault\Entities\VaultProofPack;
+use Modules\TitanVault\Services\VaultProofPackService;
 
 class VaultProofController extends Controller
 {
+    public function __construct(protected VaultProofPackService $packService) {}
+
+    /**
+     * Show the public proof review page.
+     */
+    public function show(Request $request, string $token)
+    {
+        $link = VaultAccessLink::where('token', $token)->first();
+
+        if (!$link) {
+            abort(404);
+        }
+
+        if (!$link->isValid()) {
+            abort(403, __('titan_vault::titan_vault.link_expired_or_inactive'));
+        }
+
+        // Password protection: redirect to password form if not yet verified.
+        if ($link->password_hash && !session("vault_proof_auth_{$token}")) {
+            return redirect()->route('titan-vault.proof.password', $token);
+        }
+
+        $document = $link->document()->with(['versions', 'comments', 'approvals'])->firstOrFail();
+
+        // Increment view count and log activity.
+        $link->increment('view_count');
+
+        VaultActivityLog::create([
+            'document_id'  => $document->id,
+            'client_token' => $token,
+            'action'       => 'viewed',
+            'ip_address'   => $request->ip(),
+        ]);
+
+        return view('titan_vault::proof.show', compact('document', 'link', 'token'));
+    }
+
+    /**
+     * Show the password entry form for a protected proof link.
+     */
+    public function password(Request $request, string $token)
+    {
+        $link = VaultAccessLink::where('token', $token)->first();
+
+        if (!$link) {
+            abort(404);
+        }
+
+        if (!$link->is_active || $link->isExpired()) {
+            abort(403, __('titan_vault::titan_vault.link_expired_or_inactive'));
+        }
+
+        if ($request->isMethod('post')) {
+            $request->validate(['password' => 'required|string']);
+
+            if (Hash::check($request->input('password'), $link->password_hash)) {
+                session(["vault_proof_auth_{$token}" => true]);
+                return redirect()->route('titan-vault.proof.show', $token);
+            }
+
+            return back()->withErrors(['password' => __('titan_vault::titan_vault.invalid_password')]);
+        }
+
+        return view('titan_vault::proof.password', compact('token'));
+    }
+
+    /**
+     * Record an approval for the proof.
+     */
+    public function approve(Request $request, string $token)
+    {
+        $link = $this->resolveActiveLink($token);
+
+        $request->validate([
+            'approver_name'  => 'required|string|max:255',
+            'approver_email' => 'required|email|max:255',
+            'signature_data' => 'nullable|string',
+        ]);
+
+        $document = $link->document;
+
+        VaultApproval::create([
+            'document_id'    => $document->id,
+            'approver_name'  => $request->input('approver_name'),
+            'approver_email' => $request->input('approver_email'),
+            'ip_address'     => $request->ip(),
+            'approved_at'    => now(),
+            'signature_data' => $request->input('signature_data'),
+            'action'         => VaultApproval::ACTION_APPROVED,
+        ]);
+
+        $document->update(['status' => VaultDocument::APPROVED]);
+
+        VaultActivityLog::create([
+            'document_id'  => $document->id,
+            'client_token' => $token,
+            'action'       => 'approved',
+            'ip_address'   => $request->ip(),
+            'metadata'     => ['approver_email' => $request->input('approver_email')],
+        ]);
+
+        return back()->with('success', __('titan_vault::titan_vault.proof_approved'));
+    }
+
+    /**
+     * Request a revision on the proof.
+     */
+    public function requestRevision(Request $request, string $token)
+    {
+        $link = $this->resolveActiveLink($token);
+
+        $request->validate([
+            'approver_name'  => 'required|string|max:255',
+            'approver_email' => 'required|email|max:255',
+            'revision_notes' => 'required|string',
+        ]);
+
+        $document = $link->document;
+
+        VaultApproval::create([
+            'document_id'    => $document->id,
+            'approver_name'  => $request->input('approver_name'),
+            'approver_email' => $request->input('approver_email'),
+            'ip_address'     => $request->ip(),
+            'action'         => VaultApproval::ACTION_REVISION_REQUESTED,
+            'revision_notes' => $request->input('revision_notes'),
+        ]);
+
+        VaultDocumentComment::create([
+            'document_id'  => $document->id,
+            'client_token' => $token,
+            'content'      => $request->input('revision_notes'),
+        ]);
+
+        $document->update(['status' => VaultDocument::REJECTED]);
+
+        VaultActivityLog::create([
+            'document_id'  => $document->id,
+            'client_token' => $token,
+            'action'       => 'revision_requested',
+            'ip_address'   => $request->ip(),
+            'metadata'     => ['approver_email' => $request->input('approver_email')],
+        ]);
+
+        return back()->with('success', __('titan_vault::titan_vault.revision_requested'));
+    }
+
+    // -------------------------------------------------------------------------
+    // Proof Pack methods (authenticated)
+    // -------------------------------------------------------------------------
+
+    /**
+     * POST: create a proof pack from job documents.
+     */
+    public function createPack(Request $request)
+    {
+        abort_403(!auth()->user()?->permission('view_proof_packs'));
+
+        $request->validate([
+            'job_ref'       => 'required|string|max:255',
+            'document_ids'  => 'required|array|min:1',
+            'document_ids.*'=> 'integer|exists:vault_documents,id',
+            'client_email'  => 'required|email|max:255',
+            'client_name'   => 'required|string|max:255',
+        ]);
+
+        $pack = $this->packService->createProofPack(
+            $request->input('job_ref'),
+            $request->input('document_ids'),
+            $request->input('client_email'),
+            $request->input('client_name'),
+        );
+
+        return Reply::successWithData('Proof pack created.', [
+            'pack_id'      => $pack->id,
+            'approval_url' => route('titan-vault.client.approve', $pack->approval_token ?? ''),
+        ]);
+    }
+
+    /**
+     * POST: mark proof pack as sent, generate client approval URL.
+     */
+    public function sendPack(VaultProofPack $pack)
+    {
+        abort_403(!auth()->user()?->permission('view_proof_packs'));
+
+        $this->packService->sendProofPack($pack);
+
+        $approvalUrl = route('titan-vault.client.approve', $pack->fresh()->approval_token);
+
+        return Reply::successWithData('Proof pack marked as sent.', [
+            'approval_url' => $approvalUrl,
+        ]);
+    }
+
+    /**
+     * GET (public): show the client-facing proof pack for review/approval.
+     */
+    public function approvePack(string $token)
+    {
+        $pack = VaultProofPack::with('documents')
+            ->where('approval_token', $token)
+            ->firstOrFail();
+
+        return view('titan_vault::proof.pack', compact('pack', 'token'));
+    }
+
+    /**
+     * POST (public): client submits their approval.
+     */
+    public function clientApprove(Request $request, string $token)
+    {
+        $pack = VaultProofPack::where('approval_token', $token)->firstOrFail();
+
+        $request->validate([
+            'client_name'  => 'required|string|max:255',
+            'client_email' => 'required|email|max:255',
+        ]);
+
+        $pack->update([
+            'status'      => VaultProofPack::STATUS_APPROVED,
+            'approved_at' => now(),
+            'client_name' => $request->input('client_name'),
+            'client_email'=> $request->input('client_email'),
+        ]);
+
+        return back()->with('success', 'Thank you — the proof pack has been approved.');
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    protected function resolveActiveLink(string $token): VaultAccessLink
+    {
+        $link = VaultAccessLink::with('document')->where('token', $token)->first();
+
+        if (!$link) {
+            abort(404);
+        }
+
+        if (!$link->isValid()) {
+            abort(403, __('titan_vault::titan_vault.link_expired_or_inactive'));
+        }
+
+        return $link;
+    }
+}
+
     /**
      * Show the public proof review page.
      */

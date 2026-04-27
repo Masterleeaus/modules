@@ -1,0 +1,12 @@
+{
+  "prefix": "/api/supply-chain",
+  "endpoints": [
+    "GET /ping",
+    "GET /warehouses",
+    "GET /items",
+    "GET /stock",
+    "GET /movements",
+    "POST /movements",
+    "GET /transfers"
+  ]
+}

@@ -8,7 +8,9 @@
         "add_vault_documents",
         "edit_vault_documents",
         "delete_vault_documents",
-        "manage_vault_settings"
+        "manage_vault_settings",
+        "manage_compliance_docs",
+        "view_proof_packs"
     ],
     "priority": 0,
     "providers": [
@@ -17,5 +19,5 @@
         "Modules\\TitanVault\\Providers\\RouteServiceProvider"
     ],
     "files": [],
-    "version": "1.0.0"
+    "version": "1.1.0"
 }

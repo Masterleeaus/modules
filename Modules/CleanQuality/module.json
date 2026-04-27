@@ -1,0 +1,16 @@
+{
+    "name": "CleanQuality",
+    "alias": "clean_quality",
+    "description": "Merged quality engine for inspections, quality checks, templates, and reclean workflows.",
+    "keywords": ["quality", "inspection", "cleaning", "templates", "reclean"],
+    "permissions": ["view_quality_control", "add_quality_control", "edit_quality_control", "delete_quality_control"],
+    "priority": 0,
+    "providers": [
+        "Modules\\CleanQuality\\Providers\\CleanQualityServiceProvider",
+        "Modules\\CleanQuality\\Providers\\EventServiceProvider",
+        "Modules\\CleanQuality\\Providers\\RouteServiceProvider",
+        "Modules\\CleanQuality\\Providers\\FilamentServiceProvider"
+    ],
+    "files": [],
+    "version": "2.0.0"
+}

@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "install": ["migrate", "seed:supplychain", "clear-cache"],
+    "upgrade": ["run-idempotent-migrations", "seed:supplychain"],
+    "rollback": ["restore-module-settings-if-present"]
+  }
+}

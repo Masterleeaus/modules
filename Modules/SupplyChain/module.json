@@ -1,0 +1,29 @@
+{
+  "name": "SupplyChain",
+  "alias": "supplychain",
+  "description": "SupplyChain engine unifying suppliers and inventory workflows",
+  "keywords": ["supplychain", "suppliers", "inventory", "procurement", "stock"],
+  "priority": 10,
+  "providers": [
+    "Modules\\SupplyChain\\Providers\\SupplyChainServiceProvider",
+    "Modules\\SupplyChain\\Providers\\RouteServiceProvider",
+    "Modules\\SupplyChain\\Providers\\EventServiceProvider",
+    "Modules\\SupplyChain\\Providers\\FilamentServiceProvider"
+  ],
+  "files": [],
+  "version": "1.0.0",
+  "active": 1,
+  "aliases": {},
+  "requires": [],
+  "permissions": [
+    "supplychain.view",
+    "supplychain.manage",
+    "supplychain.suppliers.view",
+    "supplychain.suppliers.manage",
+    "supplychain.purchasing.view",
+    "supplychain.purchasing.manage",
+    "supplychain.transfer.view",
+    "supplychain.transfer.manage"
+  ],
+  "sidebar_menu": true
+}

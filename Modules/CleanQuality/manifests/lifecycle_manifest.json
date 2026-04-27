@@ -1,0 +1,15 @@
+{
+  "install": [
+    "migrate",
+    "seed:clean_quality",
+    "clear-cache"
+  ],
+  "upgrade": [
+    "run-idempotent-migrations",
+    "seed:clean_quality"
+  ],
+  "rollback": [
+    "restore-clean-quality-settings"
+  ]
+}
+

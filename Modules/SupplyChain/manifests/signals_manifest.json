@@ -1,0 +1,28 @@
+{
+  "signals": [
+    {
+      "event": "Modules\\SupplyChain\\Events\\StockLevelLow",
+      "alias": "supplychain.stock_level_low",
+      "description": "Fired when a stock level falls at or below the minimum quantity threshold"
+    },
+    {
+      "event": "Modules\\SupplyChain\\Events\\PurchaseOrderPlaced",
+      "alias": "supplychain.purchase_order_placed",
+      "description": "Fired when a new purchase order is created and submitted"
+    },
+    {
+      "event": "Modules\\SupplyChain\\Events\\StockReceived",
+      "alias": "supplychain.stock_received",
+      "description": "Fired when goods are received against a purchase order (GRN)"
+    },
+    {
+      "event": "Modules\\SupplyChain\\Events\\SupplierRated",
+      "alias": "supplychain.supplier_rated",
+      "description": "Fired when a supplier performance rating is submitted"
+    }
+  ],
+  "consumes": [
+    "purchase.order_created",
+    "managedpremises.site_requirements_updated"
+  ]
+}

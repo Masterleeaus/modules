@@ -1,0 +1,17 @@
+{
+  "emits": [
+    "clean_quality.inspection.completed",
+    "clean_quality.quality_check.scheduled",
+    "clean_quality.reclean.authorised",
+    "clean_quality.quality_score.updated",
+    "performance.cleaner_quality_score_updated",
+    "booking_module.reclean.authorised",
+    "managed_premises.quality_score_updated",
+    "titanzero.clean_quality.score_updated"
+  ],
+  "consumes": [
+    "job.completed",
+    "cleaning.job.completed"
+  ]
+}
+

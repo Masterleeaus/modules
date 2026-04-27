@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\PMCore\app\Http\Controllers\JobChecklistController;
 use Modules\PMCore\app\Http\Controllers\ProjectController;
 use Modules\PMCore\app\Http\Controllers\ProjectDashboardController;
 use Modules\PMCore\app\Http\Controllers\ProjectReportController;
@@ -52,6 +53,8 @@ Route::group(['prefix' => 'projects', 'as' => 'pmcore.', 'middleware' => ['auth'
         Route::post('/{timesheet}/approve', [TimesheetController::class, 'approve'])->name('approve');
         Route::post('/{timesheet}/reject', [TimesheetController::class, 'reject'])->name('reject');
         Route::post('/{timesheet}/submit', [TimesheetController::class, 'submit'])->name('submit');
+        Route::post('/{timesheet}/clock-in', [TimesheetController::class, 'clockIn'])->name('clock_in');
+        Route::post('/{timesheet}/clock-out', [TimesheetController::class, 'clockOut'])->name('clock_out');
     });
 
     Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
@@ -123,4 +126,12 @@ Route::group(['prefix' => 'projects', 'as' => 'pmcore.', 'middleware' => ['auth'
     Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::post('/{project}/duplicate', [ProjectController::class, 'duplicate'])->name('projects.duplicate');
     Route::post('/{project}/archive', [ProjectController::class, 'archive'])->name('projects.archive');
+
+    // Cleaning: Checklist Management
+    Route::get('/{project}/checklists', [JobChecklistController::class, 'index'])->name('checklists.index');
+    Route::post('/{project}/checklists', [JobChecklistController::class, 'store'])->name('checklists.store');
+    Route::post('/{project}/checklists/complete', [JobChecklistController::class, 'complete'])->name('checklists.complete');
+
+    // Cleaning: Checklist Templates (global)
+    Route::get('/job-checklist-templates', [JobChecklistController::class, 'templates'])->name('checklist.templates');
 });

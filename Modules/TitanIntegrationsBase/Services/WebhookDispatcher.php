@@ -79,6 +79,21 @@ class WebhookDispatcher
         }
     }
 
+    /**
+     * Dispatch a cleaning-domain event to all active endpoints for a company.
+     *
+     * This is a convenience wrapper around fire() that adds a 'cleaning' meta
+     * key to the payload so downstream systems can filter by domain.
+     *
+     * @param  string  $eventType  One of the CleaningWebhookEvents constants
+     * @param  array   $payload    Event data (job, invoice, staff, etc.)
+     * @param  int     $companyId
+     */
+    public function dispatchCleaningEvent(string $eventType, array $payload, int $companyId): void
+    {
+        $this->fire($companyId, $eventType, array_merge($payload, ['_domain' => 'cleaning']));
+    }
+
     private function scheduleRetry(WebhookEndpoint $endpoint, string $event, array $payload, int $attempt): void
     {
         $delays = config('titanintegrations.webhooks.retry_delays', [5, 30, 300]);

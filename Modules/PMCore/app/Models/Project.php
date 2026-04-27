@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Schema;
+use Modules\PMCore\app\Enums\JobType;
 use Modules\PMCore\app\Enums\ProjectPriority;
 use Modules\PMCore\app\Enums\ProjectStatus;
 use Modules\PMCore\app\Enums\ProjectType;
+use Modules\PMCore\app\Enums\RecurrenceType;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
@@ -37,6 +39,19 @@ class Project extends Model implements AuditableContract
         'hourly_rate',
         'client_id',
         'project_manager_id',
+        // Cleaning-specific
+        'job_type',
+        'recurrence',
+        'recurrence_parent_id',
+        'address',
+        'suburb',
+        'state',
+        'postcode',
+        'access_instructions',
+        'client_notes',
+        'job_ref',
+        'quoted_price',
+        'actual_price',
     ];
 
     protected $casts = [
@@ -53,6 +68,11 @@ class Project extends Model implements AuditableContract
         'status' => ProjectStatus::class,
         'type' => ProjectType::class,
         'priority' => ProjectPriority::class,
+        // Cleaning-specific
+        'job_type' => JobType::class,
+        'recurrence' => RecurrenceType::class,
+        'quoted_price' => 'decimal:2',
+        'actual_price' => 'decimal:2',
     ];
 
     protected $dates = [
@@ -266,6 +286,38 @@ class Project extends Model implements AuditableContract
     public function timesheets()
     {
         return $this->hasMany(Timesheet::class);
+    }
+
+    /**
+     * Get checklists for this project.
+     */
+    public function checklists()
+    {
+        return $this->hasMany(ProjectChecklist::class);
+    }
+
+    /**
+     * Get materials logged for this project.
+     */
+    public function materials()
+    {
+        return $this->hasMany(ProjectMaterial::class);
+    }
+
+    /**
+     * Get recurring child jobs generated from this project.
+     */
+    public function children()
+    {
+        return $this->hasMany(Project::class, 'recurrence_parent_id');
+    }
+
+    /**
+     * Get the parent recurring project (if this is a generated child).
+     */
+    public function parent()
+    {
+        return $this->belongsTo(Project::class, 'recurrence_parent_id');
     }
 
     /**
