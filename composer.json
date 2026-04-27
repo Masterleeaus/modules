@@ -7,8 +7,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
+        "emmanpbarrameda/filament-take-picture-field": "*",
         "filament/filament": "^4.0",
-        "filament/spatie-laravel-media-library-plugin": "^4.0",
+        "filament/spatie-laravel-media-library-plugin": "*",
         "filament/spatie-laravel-settings-plugin": "^4.0",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/fortify": "^1.30",
@@ -18,6 +19,7 @@
         "laravel/wayfinder": "^0.1.9",
         "redberry/page-builder-plugin": "^2.0",
         "sentry/sentry-laravel": "^4.25",
+        "solution-forest/filament-header-select": "*",
         "spatie/laravel-permission": "^7.0",
         "stripe/stripe-php": "^20.0",
         "symfony/sendgrid-mailer": "^8.0",
