@@ -1,25 +1,25 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
-* @see \App\Http\Controllers\PublicEstimateController::publicMethod
+* @see \App\Http\Controllers\PublicEstimateController::show
  * @see app/Http/Controllers/PublicEstimateController.php:13
  * @route '/estimates/{token}'
  */
-export const publicMethod = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: publicMethod.url(args, options),
+export const show = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show.url(args, options),
     method: 'get',
 })
 
-publicMethod.definition = {
+show.definition = {
     methods: ["get","head"],
     url: '/estimates/{token}',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see \App\Http\Controllers\PublicEstimateController::publicMethod
+* @see \App\Http\Controllers\PublicEstimateController::show
  * @see app/Http/Controllers/PublicEstimateController.php:13
  * @route '/estimates/{token}'
  */
-publicMethod.url = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions) => {
+show.url = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { token: args }
     }
@@ -37,27 +37,27 @@ publicMethod.url = (args: { token: string | number } | [token: string | number ]
                         token: args.token,
                 }
 
-    return publicMethod.definition.url
+    return show.definition.url
             .replace('{token}', parsedArgs.token.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
-* @see \App\Http\Controllers\PublicEstimateController::publicMethod
+* @see \App\Http\Controllers\PublicEstimateController::show
  * @see app/Http/Controllers/PublicEstimateController.php:13
  * @route '/estimates/{token}'
  */
-publicMethod.get = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: publicMethod.url(args, options),
+show.get = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show.url(args, options),
     method: 'get',
 })
 /**
-* @see \App\Http\Controllers\PublicEstimateController::publicMethod
+* @see \App\Http\Controllers\PublicEstimateController::show
  * @see app/Http/Controllers/PublicEstimateController.php:13
  * @route '/estimates/{token}'
  */
-publicMethod.head = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: publicMethod.url(args, options),
+show.head = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: show.url(args, options),
     method: 'head',
 })
 
@@ -167,7 +167,7 @@ decline.post = (args: { token: string | number } | [token: string | number ] | s
     method: 'post',
 })
 const estimates = {
-    public: Object.assign(publicMethod, publicMethod),
+    show: Object.assign(show, show),
 accept: Object.assign(accept, accept),
 decline: Object.assign(decline, decline),
 }

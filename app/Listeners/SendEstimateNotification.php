@@ -46,7 +46,7 @@ class SendEstimateNotification implements ShouldQueue
             return;
         }
 
-        $url  = route('estimates.public', $estimate->token);
+        $url  = route('public.estimates.show', $estimate->token);
         $name = $estimate->customer?->first_name ?? 'there';
         $body = "Hi {$name}, your estimate \"{$estimate->title}\" is ready: {$url}";
 

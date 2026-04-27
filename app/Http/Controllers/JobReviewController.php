@@ -61,7 +61,7 @@ class JobReviewController extends Controller
             'tip_amount'   => $request->tip_amount ?? 0,
         ]);
 
-        return redirect()->route('client.dashboard')
+        return redirect()->route('portal.dashboard')
             ->with('success', 'Thank you for your feedback!');
     }
 }
