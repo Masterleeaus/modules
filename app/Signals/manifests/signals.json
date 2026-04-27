@@ -1,0 +1,23 @@
+{
+    "module": "core",
+    "emits": [
+        {
+            "type": "job.created",
+            "required_fields": ["job_id"],
+            "approval_mode": "auto",
+            "description": "Fired when a new field job is created."
+        },
+        {
+            "type": "job.status_changed",
+            "required_fields": ["job_id", "old_status", "new_status"],
+            "approval_mode": "auto",
+            "description": "Fired when a field job transitions to a new status."
+        },
+        {
+            "type": "payment.received",
+            "required_fields": ["payment_id", "invoice_id", "amount"],
+            "approval_mode": "auto",
+            "description": "Fired when a payment is recorded against an invoice."
+        }
+    ]
+}
