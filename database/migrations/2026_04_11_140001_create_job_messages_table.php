@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('job_messages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('job_id')->constrained('field_jobs')->cascadeOnDelete();
+            $table->foreignId('job_id')->constrained('cleaning_jobs')->cascadeOnDelete();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->string('channel', 20);   // 'email' | 'sms'
             $table->string('event', 50);     // 'job_scheduled', 'job_reminder', 'en_route', 'job_completed'

@@ -92,7 +92,7 @@ class EstimateController extends Controller
 
         $data = $request->validate([
             'customer_id'      => ['required', 'integer', Rule::exists('customers', 'id')->where('organization_id', $orgId)],
-            'job_id'           => ['nullable', 'integer', Rule::exists('field_jobs', 'id')->where('organization_id', $orgId)],
+            'job_id'           => ['nullable', 'integer', Rule::exists('cleaning_jobs', 'id')->where('organization_id', $orgId)],
             'title'            => ['required', 'string', 'max:255'],
             'intro'            => ['nullable', 'string', 'max:2000'],
             'footer'           => ['nullable', 'string', 'max:2000'],
@@ -165,7 +165,7 @@ class EstimateController extends Controller
 
         $data = $request->validate([
             'customer_id'      => ['required', 'integer', Rule::exists('customers', 'id')->where('organization_id', $orgId)],
-            'job_id'           => ['nullable', 'integer', Rule::exists('field_jobs', 'id')->where('organization_id', $orgId)],
+            'job_id'           => ['nullable', 'integer', Rule::exists('cleaning_jobs', 'id')->where('organization_id', $orgId)],
             'title'            => ['required', 'string', 'max:255'],
             'intro'            => ['nullable', 'string', 'max:2000'],
             'footer'           => ['nullable', 'string', 'max:2000'],
