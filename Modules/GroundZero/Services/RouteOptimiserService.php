@@ -16,11 +16,15 @@ class RouteOptimiserService
 
     /**
      * Given a starting [lat, lng] and an ordered list of destination addresses,
-     * return the optimal visit order together with distance and duration totals.
+     * return a visit order that minimises travel distance using a
+     * nearest-first heuristic together with the total distance and duration.
      *
-     * The algorithm builds a full distance matrix (1 origin × N destinations)
-     * then applies a nearest-neighbour greedy heuristic to produce a good-
-     * enough ordering without the expense of solving TSP exactly.
+     * **Algorithm**: The Distance Matrix API is called with one origin (the
+     * technician's current position) and all destinations.  The destination
+     * with the shortest distance from the origin is chosen as the first stop.
+     * Remaining stops are appended in their original `scheduled_at` order —
+     * a full inter-stop TSP optimisation would require an additional API call
+     * per subsequent leg and is not performed here.
      *
      * @param  array{0: float, 1: float}  $origin       [lat, lng]
      * @param  list<string>               $destinations  Address strings

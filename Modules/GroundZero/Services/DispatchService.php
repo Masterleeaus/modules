@@ -49,6 +49,9 @@ class DispatchService
 
         $techIds = $technicians->pluck('id');
 
+        // Latest location per technician — one query using a correlated subquery
+        // to obtain the MAX(id) per user_id, avoiding N+1 and avoiding window
+        // functions that are not universally supported (SQLite in tests).
         $latestLocations = DriverLocation::whereIn('user_id', $techIds)
             ->whereIn('id', function ($sub) use ($techIds) {
                 $sub->selectRaw('MAX(id)')

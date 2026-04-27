@@ -45,7 +45,7 @@ class GroundZeroModuleTest extends TestCase
     {
         $prop = (new \ReflectionClass(DispatchBoardPage::class))->getProperty('slug');
         $prop->setAccessible(true);
-        $this->assertSame('ground-zero/dispatch', $prop->getValue());
+        $this->assertSame('ground-zero/dispatch', $prop->getValue(null));
     }
 
     /** @test */
@@ -53,7 +53,7 @@ class GroundZeroModuleTest extends TestCase
     {
         $prop = (new \ReflectionClass(DispatchBoardPage::class))->getProperty('navigationGroup');
         $prop->setAccessible(true);
-        $this->assertSame('Operations', $prop->getValue());
+        $this->assertSame('Operations', $prop->getValue(null));
     }
 
     /** @test */
