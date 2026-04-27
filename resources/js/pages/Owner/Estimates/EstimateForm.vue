@@ -2,10 +2,7 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
-
-interface Customer { id: number; first_name: string; last_name: string }
-interface Job { id: number; title: string; scheduled_at: string | null; customer_id: number }
-interface CatalogItem { id: number; name: string; unit_price: string; unit: string; is_taxable: boolean }
+import type { Customer, Estimate, EstimatePackage, Item, EstimateTier } from '@/types';
 
 interface LineItemForm {
     item_id: number | null;
@@ -26,35 +23,12 @@ interface PackageForm {
 
 const props = defineProps<{
     customers: Customer[];
-    jobs: Job[];
-    catalogItems: CatalogItem[];
-    tiers: string[];
+    jobs: { id: number; title: string; scheduled_at: string | null; customer_id: number }[];
+    catalogItems: Item[];
+    tiers: EstimateTier[];
     statuses: Record<string, string>;
     // only present on edit
-    estimate?: {
-        id: number;
-        customer_id: number;
-        job_id: number | null;
-        title: string;
-        intro: string | null;
-        footer: string | null;
-        expires_at: string | null;
-        tax_rate: string;
-        packages: Array<{
-            tier: string;
-            label: string;
-            description: string | null;
-            is_recommended: boolean;
-            line_items: Array<{
-                item_id: number | null;
-                name: string;
-                description: string | null;
-                unit_price: string;
-                quantity: string;
-                is_taxable: boolean;
-            }>;
-        }>;
-    };
+    estimate?: Estimate & { packages?: EstimatePackage[] };
 }>();
 
 const TIER_LABELS: Record<string, string> = { good: 'Good', better: 'Better', best: 'Best' };
@@ -63,13 +37,13 @@ const isEdit = computed(() => !!props.estimate);
 // Build default packages (one per tier)
 function defaultPackages(): PackageForm[] {
     return props.tiers.map((tier) => {
-        const existing = props.estimate?.packages.find((p) => p.tier === tier);
+        const existing = props.estimate?.packages?.find((p) => p.tier === tier);
         return {
             tier,
             label: existing?.label ?? TIER_LABELS[tier] ?? tier,
             description: existing?.description ?? '',
             is_recommended: existing?.is_recommended ?? (tier === 'better'),
-            line_items: existing?.line_items.map((li) => ({
+            line_items: existing?.line_items?.map((li) => ({
                 item_id: li.item_id,
                 name: li.name,
                 description: li.description ?? '',
@@ -94,7 +68,7 @@ const form = useForm({
 
 // Which tiers are included
 const activeTiers = reactive(new Set(
-    props.estimate ? props.estimate.packages.map((p) => p.tier) : ['good', 'better', 'best'],
+    props.estimate ? props.estimate.packages?.map((p) => p.tier) ?? [] : ['good', 'better', 'best'],
 ));
 
 function toggleTier(tier: string) {

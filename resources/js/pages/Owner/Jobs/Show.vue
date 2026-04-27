@@ -1,44 +1,7 @@
 <script setup lang="ts">
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-
-interface Invoice {
-    id: number;
-    invoice_number: string | null;
-    status: string;
-    total: string;
-    balance_due: string;
-}
-
-interface JobMessage {
-    id: number;
-    channel: string;
-    event: string;
-    recipient: string;
-    body: string;
-    status: string;
-    error: string | null;
-    created_at: string;
-}
-
-interface Job {
-    id: number;
-    title: string;
-    description: string | null;
-    status: string;
-    scheduled_at: string | null;
-    started_at: string | null;
-    completed_at: string | null;
-    cancelled_at: string | null;
-    office_notes: string | null;
-    technician_notes: string | null;
-    customer: { id: number; first_name: string; last_name: string } | null;
-    property: { id: number; address_line1: string; city: string; state: string; postal_code: string } | null;
-    job_type: { id: number; name: string; color: string } | null;
-    assigned_technician: { id: number; name: string } | null;
-    invoice: Invoice | null;
-    messages: JobMessage[];
-}
+import type { Job } from '@/types';
 
 const props = defineProps<{
     job: Job;
@@ -75,7 +38,7 @@ function formatCurrency(val: string | number): string {
 }
 
 function changeStatus(newStatus: string) {
-    statusForm.status = newStatus;
+    statusForm.status = newStatus as typeof statusForm.status;
     statusForm.patch(`/owner/jobs/${props.job.id}/status`);
 }
 
@@ -187,7 +150,7 @@ function cancelJob() {
                             <dt class="text-slate-500">Type</dt>
                             <dd class="font-medium text-slate-800">
                                 <span v-if="job.job_type" class="inline-flex items-center gap-1.5">
-                                    <span class="h-2.5 w-2.5 rounded-full" :style="{ background: job.job_type.color }" />
+                                    <span class="h-2.5 w-2.5 rounded-full" :style="job.job_type.color ? { background: job.job_type.color } : undefined" />
                                     {{ job.job_type.name }}
                                 </span>
                                 <span v-else class="text-slate-400">—</span>
@@ -258,7 +221,7 @@ function cancelJob() {
                                             {{ msg.channel === 'email' ? 'Email' : 'SMS' }}
                                         </span>
                                         <span class="text-xs font-medium text-slate-700">
-                                            {{ EVENT_LABELS[msg.event] ?? msg.event }}
+                                            {{ (msg.event ? EVENT_LABELS[msg.event] : null) ?? msg.event ?? '—' }}
                                         </span>
                                         <span
                                             v-if="msg.status === 'failed'"

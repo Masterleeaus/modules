@@ -2,28 +2,10 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-
-interface Customer { id: number; first_name: string; last_name: string }
-interface Estimate {
-    id: number;
-    estimate_number: string | null;
-    title: string;
-    status: string;
-    expires_at: string | null;
-    created_at: string;
-    customer: Customer | null;
-}
-
-interface Paginated {
-    data: Estimate[];
-    links: { url: string | null; label: string; active: boolean }[];
-    from: number | null;
-    to: number | null;
-    total: number;
-}
+import type { Estimate, PaginatedCollection } from '@/types';
 
 const props = defineProps<{
-    estimates: Paginated;
+    estimates: PaginatedCollection<Estimate>;
     filters: { search?: string; status?: string };
     statuses: Record<string, string>;
 }>();

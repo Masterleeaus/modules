@@ -2,28 +2,7 @@
 import { useForm, router } from '@inertiajs/vue3';
 import { Head } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
-
-interface Company {
-    name: string | null;
-    email: string | null;
-    phone: string | null;
-    address: string | null;
-    city: string | null;
-    state: string | null;
-    zip: string | null;
-}
-
-interface JobType {
-    id: number;
-    name: string;
-    color: string;
-}
-
-interface Technician {
-    id: number;
-    name: string;
-    email: string;
-}
+import type { JobType, UserRef } from '@/types';
 
 interface TemplateEntry {
     subject: string | null;
@@ -43,9 +22,17 @@ interface StepConfig {
 }
 
 const props = defineProps<{
-    company: Company;
+    company: {
+        name: string | null;
+        email: string | null;
+        phone: string | null;
+        address: string | null;
+        city: string | null;
+        state: string | null;
+        zip: string | null;
+    };
     job_types: JobType[];
-    technicians: Technician[];
+    technicians: UserRef[];
     templates: Record<string, TemplateEntry>;
     branding: Branding;
     setup_completed_steps: string[];
@@ -392,7 +379,7 @@ function finish() {
                         class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2.5"
                     >
                         <div class="flex items-center gap-2.5">
-                            <span class="h-3 w-3 rounded-full" :style="{ background: jt.color }" />
+                            <span class="h-3 w-3 rounded-full" :style="jt.color ? { background: jt.color } : undefined" />
                             <span class="text-sm font-medium text-slate-800">{{ jt.name }}</span>
                         </div>
                         <button
@@ -546,7 +533,7 @@ function finish() {
                     <h2 class="text-lg font-semibold text-slate-800">Notification Templates</h2>
                     <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">Optional</span>
                 </div>
-                <p class="text-sm text-slate-500 mb-6">Customize the SMS and email messages sent to your customers. Use <code class="text-xs bg-slate-100 px-1 rounded">{{variable}}</code> placeholders.</p>
+                <p class="text-sm text-slate-500 mb-6">Customize the SMS and email messages sent to your customers. Use <code class="text-xs bg-slate-100 px-1 rounded">{{ '{{variable}}' }}</code> placeholders.</p>
 
                 <!-- Available variables -->
                 <div class="mb-5 rounded-lg bg-slate-50 border border-slate-200 px-4 py-3">

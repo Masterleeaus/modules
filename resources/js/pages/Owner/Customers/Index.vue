@@ -2,32 +2,10 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-
-interface Customer {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string | null;
-    phone: string | null;
-    mobile: string | null;
-}
-
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
-
-interface PaginatedCustomers {
-    data: Customer[];
-    links: PaginationLink[];
-    from: number | null;
-    to: number | null;
-    total: number;
-}
+import type { Customer, PaginatedCollection } from '@/types';
 
 const props = defineProps<{
-    customers: PaginatedCustomers;
+    customers: PaginatedCollection<Customer>;
     filters: { search?: string };
 }>();
 

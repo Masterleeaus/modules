@@ -2,28 +2,10 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-
-interface Customer { id: number; first_name: string; last_name: string }
-interface JobType  { id: number; name: string; color: string }
-interface Job {
-    id: number;
-    title: string;
-    status: string;
-    scheduled_at: string | null;
-    customer: Customer | null;
-    job_type: JobType | null;
-}
-
-interface PaginatedJobs {
-    data: Job[];
-    links: { url: string | null; label: string; active: boolean }[];
-    from: number | null;
-    to: number | null;
-    total: number;
-}
+import type { Job, PaginatedCollection } from '@/types';
 
 const props = defineProps<{
-    jobs: PaginatedJobs;
+    jobs: PaginatedCollection<Job>;
     filters: { search?: string; status?: string };
     statuses: Record<string, string>;
 }>();

@@ -2,50 +2,17 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import type { Estimate, EstimatePackage, EstimateLineItem } from '@/types';
 
-interface LineItem {
-    id: number;
-    name: string;
-    description: string | null;
-    unit_price: string;
-    quantity: string;
-    total: string;
-    is_taxable: boolean;
-}
-
-interface Package {
-    id: number;
-    tier: string;
-    label: string;
-    description: string | null;
-    subtotal: string;
-    tax_amount: string;
-    total: string;
-    is_recommended: boolean;
-    line_items: LineItem[];
-}
-
-interface Estimate {
-    id: number;
-    estimate_number: string | null;
-    title: string;
-    intro: string | null;
-    footer: string | null;
-    status: string;
-    token: string;
-    expires_at: string | null;
-    sent_at: string | null;
-    accepted_at: string | null;
-    accepted_package: string | null;
-    declined_at: string | null;
-    tax_rate: string;
-    customer: { id: number; first_name: string; last_name: string; email?: string } | null;
-    packages: Package[];
+// The Show page always receives the estimate with its relations eager-loaded.
+type PackageWithItems = EstimatePackage & { line_items: EstimateLineItem[] };
+type EstimateWithDetails = Estimate & {
+    packages: PackageWithItems[];
     converted_job: { id: number; title: string } | null;
-}
+};
 
 const props = defineProps<{
-    estimate: Estimate;
+    estimate: EstimateWithDetails;
     statuses: Record<string, string>;
 }>();
 

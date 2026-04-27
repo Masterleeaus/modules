@@ -3,62 +3,17 @@ import TechnicianLayout from '@/layouts/TechnicianLayout.vue';
 import { useImageCompression } from '@/composables/useImageCompression';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
+import type { Job, Item, Attachment, JobLineItem, JobChecklistItem, JobStatus } from '@/types';
 
 const { compressImage } = useImageCompression();
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-interface ChecklistItem {
-    id: number;
-    label: string;
-    sort_order: number;
-    is_required: boolean;
-    completed_at: string | null;
-}
-
-interface Attachment {
-    id: number;
-    filename: string;
-    url: string;
-    tag: 'before' | 'after' | 'client_signature' | null;
-    mime_type: string | null;
-}
-
-interface LineItem {
-    id: number;
-    item_id: number | null;
-    name: string;
-    unit_price: string;
-    quantity: string;
-    total: string;
-    sort_order: number;
-}
-
+// CatalogItem is a narrower view of Item used in the catalog dropdown
 interface CatalogItem {
     id: number;
     name: string;
     unit_price: string;
     unit: string;
     sku: string | null;
-}
-
-interface Job {
-    id: number;
-    title: string;
-    description: string | null;
-    status: string;
-    scheduled_at: string | null;
-    started_at: string | null;
-    arrived_at: string | null;
-    completed_at: string | null;
-    office_notes: string | null;
-    technician_notes: string | null;
-    customer_notes: string | null;
-    customer: { id: number; first_name: string; last_name: string; phone?: string } | null;
-    property: { id: number; address_line1: string; city: string; state: string; postal_code: string } | null;
-    job_type: { id: number; name: string; color: string } | null;
-    checklist_items: ChecklistItem[];
-    attachments: Attachment[];
-    line_items: LineItem[];
 }
 
 const props = defineProps<{
@@ -102,7 +57,7 @@ function updateStatus(key: string) {
     router.patch(`/api/technician/jobs/${props.job.id}/status`, { status: key }, {
         preserveScroll: true,
         preserveState: true,
-        onSuccess: () => { currentStatus.value = key; },
+        onSuccess: () => { currentStatus.value = key as JobStatus; },
         onFinish: () => { updatingStatus.value = false; },
     });
 }
@@ -115,7 +70,7 @@ const checklistState = reactive(
 );
 const togglingItem = ref<number | null>(null);
 
-function toggleChecklist(item: ChecklistItem) {
+function toggleChecklist(item: JobChecklistItem) {
     if (togglingItem.value) return;
     togglingItem.value = item.id;
     const completed = !checklistState[item.id];
@@ -142,8 +97,8 @@ const uploadingTag = ref<'before' | 'after' | null>(null);
 const uploadProgress = ref(0);
 const deletingPhotoId = ref<number | null>(null);
 
-const beforePhotos = computed(() => photos.filter((p) => p.tag === 'before'));
-const afterPhotos  = computed(() => photos.filter((p) => p.tag === 'after'));
+const beforePhotos = computed(() => photos.filter((p: Attachment) => p.tag === 'before'));
+const afterPhotos  = computed(() => photos.filter((p: Attachment) => p.tag === 'after'));
 
 async function handlePhotoCapture(e: Event, tag: 'before' | 'after') {
     const input = e.target as HTMLInputElement;
@@ -198,9 +153,9 @@ function deletePhoto(photo: Attachment) {
 }
 
 // ── Line items ────────────────────────────────────────────────────────────────
-const lineItems = reactive<LineItem[]>([...(props.job.line_items ?? [])]);
+const lineItems = reactive<JobLineItem[]>([...(props.job.line_items ?? [])]);
 const lineItemTotal = computed(() =>
-    lineItems.reduce((sum, li) => sum + parseFloat(li.unit_price) * parseFloat(li.quantity), 0),
+    lineItems.reduce((sum: number, li: JobLineItem) => sum + parseFloat(li.unit_price) * parseFloat(li.quantity), 0),
 );
 const showAddLineItem = ref(false);
 const addForm = reactive({ name: '', unit_price: '', quantity: '1', item_id: null as number | null });
@@ -261,7 +216,7 @@ async function addLineItem() {
     }
 }
 
-async function deleteLineItem(li: LineItem) {
+async function deleteLineItem(li: JobLineItem) {
     const csrfMeta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
     await fetch(`/api/technician/jobs/${props.job.id}/line-items/${li.id}`, {
         method: 'DELETE',
@@ -302,7 +257,7 @@ function saveCustomerNotes() {
 const signatureCanvas = ref<HTMLCanvasElement | null>(null);
 const isDrawing = ref(false);
 const hasSig = ref(
-    props.job.attachments.some((a) => a.tag === 'client_signature'),
+    props.job.attachments?.some((a) => a.tag === 'client_signature') ?? false,
 );
 const savingSig = ref(false);
 const sigSaved = ref(hasSig.value);

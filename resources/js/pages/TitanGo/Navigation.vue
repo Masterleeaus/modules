@@ -1,15 +1,7 @@
 <script setup lang="ts">
 import TechnicianLayout from '@/layouts/TechnicianLayout.vue';
 import { Head } from '@inertiajs/vue3';
-
-interface Property {
-    address_line1: string;
-    city: string;
-    state: string;
-    postal_code?: string;
-    latitude?: number | null;
-    longitude?: number | null;
-}
+import type { Property } from '@/types';
 
 const props = defineProps<{
     address: Property;

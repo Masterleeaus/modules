@@ -2,6 +2,7 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import type { Invoice, PaginatedCollection } from '@/types';
 
 interface Stats {
     total_count: number;
@@ -13,29 +14,9 @@ interface Stats {
     overdue_count: number;
 }
 
-interface Invoice {
-    id: number;
-    invoice_number: string | null;
-    status: string;
-    total: string;
-    balance_due: string;
-    due_at: string | null;
-    issued_at: string | null;
-    customer: { id: number; first_name: string; last_name: string } | null;
-    job: { id: number; title: string } | null;
-}
-
-interface Paginator {
-    data: Invoice[];
-    links: { url: string | null; label: string; active: boolean }[];
-    from: number | null;
-    to: number | null;
-    total: number;
-}
-
 const props = defineProps<{
     stats: Stats;
-    invoices: Paginator;
+    invoices: PaginatedCollection<Invoice>;
     filters: { search?: string; status?: string };
     statuses: Record<string, string>;
 }>();

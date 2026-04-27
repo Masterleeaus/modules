@@ -2,12 +2,7 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import PropertyForm from './partials/PropertyForm.vue';
-
-interface Customer {
-    id: number;
-    first_name: string;
-    last_name: string;
-}
+import type { Customer } from '@/types';
 
 const props = defineProps<{ customer: Customer }>();
 

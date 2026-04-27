@@ -1,52 +1,16 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import type { Estimate, EstimatePackage, EstimateLineItem, Organization } from '@/types';
 
-interface LineItem {
-    id: number;
-    name: string;
-    description: string | null;
-    unit_price: string;
-    quantity: string;
-    total: string;
-    is_taxable: boolean;
-}
-
-interface Package {
-    id: number;
-    tier: string;
-    label: string;
-    description: string | null;
-    subtotal: string;
-    tax_amount: string;
-    total: string;
-    is_recommended: boolean;
-    line_items: LineItem[];
-}
-
-interface Organization {
-    id: number;
-    name: string;
-}
-
-interface Estimate {
-    id: number;
-    title: string;
-    intro: string | null;
-    footer: string | null;
-    status: string;
-    token: string;
-    expires_at: string | null;
-    accepted_at: string | null;
-    accepted_package: string | null;
-    declined_at: string | null;
-    tax_rate: string;
-    customer: { id: number; first_name: string; last_name: string } | null;
+// Public estimates show organization details inline; extend the domain type
+type PackageWithItems = EstimatePackage & { line_items: EstimateLineItem[] };
+type PublicEstimate = Estimate & {
     organization: Organization | null;
-    packages: Package[];
-}
+    packages: PackageWithItems[];
+};
 
-const props = defineProps<{ estimate: Estimate }>();
+const props = defineProps<{ estimate: PublicEstimate }>();
 
 const page = usePage();
 const flash = computed(() => (page.props as any).flash as { success?: string } | undefined);
