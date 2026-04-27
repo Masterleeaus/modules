@@ -2,8 +2,11 @@
 
 namespace TitanZero\FilamentChatbot\Services;
 
-use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Facades\Http;
+use TitanZero\FilamentChatbot\Contracts\LlmDriverContract;
+use TitanZero\FilamentChatbot\Drivers\AnthropicDriver;
+use TitanZero\FilamentChatbot\Drivers\GeminiDriver;
+use TitanZero\FilamentChatbot\Drivers\OpenAiDriver;
 use TitanZero\FilamentChatbot\Models\AssistantRun;
 use TitanZero\FilamentChatbot\Models\AssistantThread;
 
@@ -48,9 +51,9 @@ class AssistantService
     }
 
     /**
-     * Resolve the LLM HTTP base URL and API key for the given connection name.
+     * Resolve the LLM connection config for the given connection name.
      *
-     * @return array{url: string, api_key: string}
+     * @return array<string, mixed>
      */
     public function resolveLlmConnection(string $connectionName): array
     {
@@ -63,10 +66,36 @@ class AssistantService
     }
 
     /**
+     * Resolve the LLM driver instance for a given connection config.
+     *
+     * The driver is determined by the optional "driver" key in the connection:
+     *   - "openai"    (default) → OpenAiDriver
+     *   - "anthropic"           → AnthropicDriver
+     *   - "gemini"              → GeminiDriver
+     * Any custom class name implementing LlmDriverContract is also accepted.
+     */
+    public function resolveDriver(array $connection): LlmDriverContract
+    {
+        $driverKey = $connection['driver'] ?? 'openai';
+
+        return match ($driverKey) {
+            'openai'    => app(OpenAiDriver::class),
+            'anthropic' => app(AnthropicDriver::class),
+            'gemini'    => app(GeminiDriver::class),
+            default     => class_exists($driverKey)
+                ? app($driverKey)
+                : app(OpenAiDriver::class),
+        };
+    }
+
+    /**
      * Build the messages array to send to the LLM.
      *
-     * Includes the system prompt, optional page context, the full conversation
-     * history from completed runs on this thread, and the current user input.
+     * Includes the system prompt, optional page context, the (possibly truncated)
+     * conversation history from completed runs, and the current user input.
+     *
+     * History is truncated to the newest `max_context_messages` message-pairs when
+     * the budget is configured (see assistant.php → max_context_messages).
      *
      * @param  array<string, mixed>  $assistantConfig
      * @param  array<array<string, string>>  $history  Prior message pairs
@@ -85,6 +114,14 @@ class AssistantService
 
         if ($context) {
             $instruction .= "\n\nCurrent page context:\n" . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        }
+
+        // Apply token budget: keep only the newest N message-pairs from history
+        $maxContextMessages = (int) ($assistantConfig['max_context_messages']
+            ?? config('assistant.max_context_messages', 0));
+
+        if ($maxContextMessages > 0) {
+            $history = $this->truncateHistory($history, $maxContextMessages);
         }
 
         $messages = [['role' => 'system', 'content' => $instruction]];
@@ -134,31 +171,19 @@ class AssistantService
     }
 
     /**
-     * Dispatch a completion request to the LLM.
+     * Dispatch a completion request to the correct LLM driver.
      *
      * @param  array<int, array<string, string>>  $messages
      * @param  array<int, array<string, mixed>>   $tools
      * @param  array<string, mixed>               $llmConnection
      *
-     * @return array<string, mixed>  Raw response body as an array
+     * @return array<string, mixed>  Normalised OpenAI-style response body
      */
     public function callLlm(array $messages, array $tools, array $llmConnection, string $model): array
     {
-        $payload = [
-            'model'    => $model,
-            'messages' => $messages,
-        ];
+        $driver = $this->resolveDriver($llmConnection);
 
-        if (! empty($tools)) {
-            $payload['tools']       = $tools;
-            $payload['tool_choice'] = 'auto';
-        }
-
-        $response = Http::withToken($llmConnection['api_key'])
-            ->baseUrl(rtrim($llmConnection['url'], '/'))
-            ->post('/chat/completions', $payload);
-
-        return $response->throw()->json();
+        return $driver->chat($messages, $tools, $model, $llmConnection);
     }
 
     /**
@@ -211,4 +236,33 @@ class AssistantService
 
         return null;
     }
+
+    // -------------------------------------------------------------------------
+
+    /**
+     * Truncate history to at most $maxMessages, keeping the newest pairs.
+     *
+     * History is stored as alternating user/assistant messages. We trim from
+     * the oldest end and always remove messages in pairs to maintain alignment.
+     *
+     * @param  array<array<string, string>>  $history
+     *
+     * @return array<array<string, string>>
+     */
+    private function truncateHistory(array $history, int $maxMessages): array
+    {
+        if (count($history) <= $maxMessages) {
+            return $history;
+        }
+
+        $excess = count($history) - $maxMessages;
+
+        // Round up to keep pairs (each pair = 1 user + 1 assistant message)
+        if ($excess % 2 !== 0) {
+            $excess++;
+        }
+
+        return array_values(array_slice($history, $excess));
+    }
 }
+

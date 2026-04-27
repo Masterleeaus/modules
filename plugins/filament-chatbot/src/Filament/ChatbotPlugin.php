@@ -6,6 +6,7 @@ use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
+use TitanZero\FilamentChatbot\Filament\Resources\AssistantRunResource;
 use TitanZero\FilamentChatbot\Filament\Resources\ChatbotResource;
 use TitanZero\FilamentChatbot\Filament\Resources\ChatbotConversationResource;
 use TitanZero\FilamentChatbot\Filament\Resources\ChatbotChannelResource;
@@ -27,6 +28,7 @@ class ChatbotPlugin implements Plugin
                 ChatbotConversationResource::class,
                 ChatbotChannelResource::class,
                 ChatbotCustomerResource::class,
+                AssistantRunResource::class,
             ])
             ->pages([
                 ChatbotDashboard::class,

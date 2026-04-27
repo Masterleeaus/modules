@@ -4,7 +4,27 @@
         width: {{ $sidebarConfig['width'] ?? 400 }},
     }"
     class="chatbot-assistant-wrapper"
+    x-on:assistant-context.window="$wire.call('captureContext', $event.detail)"
 >
+    {{-- marked.js for markdown rendering (loaded once, lazy) --}}
+    <script>
+        if (typeof window.__assistantMarkedLoaded === 'undefined') {
+            window.__assistantMarkedLoaded = true;
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/marked@13/marked.min.js';
+            s.onload = () => {
+                marked.setOptions({ breaks: true, gfm: true });
+                document.dispatchEvent(new Event('assistant:marked-ready'));
+            };
+            document.head.appendChild(s);
+        }
+
+        function assistantParseMd(text) {
+            if (typeof marked === 'undefined' || !text) return (text || '').replace(/\n/g, '<br>');
+            return marked.parse(text);
+        }
+    </script>
+
     {{-- Floating toggle button --}}
     @if(($buttonConfig['show'] ?? true))
     <button
@@ -85,10 +105,10 @@
             </div>
         </div>
 
-        {{-- Message list --}}
+        {{-- Message list — poll is a fallback for when Reverb is unavailable --}}
         <div
             class="flex-1 overflow-y-auto px-4 py-3 space-y-3"
-            wire:poll.3s="refreshRuns"
+            @if($processing) wire:poll.3s="refreshRuns" @endif
             x-ref="messageList"
             x-init="$watch('$wire.messages', () => { $nextTick(() => { $el.scrollTop = $el.scrollHeight }) })"
         >
@@ -107,6 +127,13 @@
                                 <span class="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></span>
                                 <span class="h-2 w-2 animate-bounce rounded-full bg-gray-400"></span>
                             </div>
+                        @elseif($msg['role'] === 'assistant' && ($msg['status'] ?? '') !== 'failed')
+                            {{-- Render assistant output as markdown --}}
+                            <div
+                                class="prose prose-sm dark:prose-invert max-w-none break-words"
+                                x-data="{ raw: @js($msg['content'] ?? '') }"
+                                x-html="assistantParseMd(raw)"
+                            ></div>
                         @else
                             <p class="whitespace-pre-wrap break-words">{{ $msg['content'] ?? '' }}</p>
                         @endif
@@ -164,3 +191,4 @@
         class="fixed inset-0 z-30 bg-black/30 sm:hidden"
     ></div>
 </div>
+

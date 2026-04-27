@@ -2,6 +2,7 @@
 
 namespace TitanZero\FilamentChatbot\Services;
 
+use TitanZero\FilamentChatbot\Events\AssistantRunCompleted;
 use TitanZero\FilamentChatbot\Models\AssistantRun;
 
 class RunProcessorService
@@ -70,6 +71,8 @@ class RunProcessorService
                         'completed_at'  => now(),
                     ]);
 
+                    AssistantRunCompleted::dispatch($run->fresh());
+
                     return;
                 }
 
@@ -104,12 +107,16 @@ class RunProcessorService
                 'tool_results' => $allToolResults ?: null,
                 'completed_at' => now(),
             ]);
+
+            AssistantRunCompleted::dispatch($run->fresh());
         } catch (\Throwable $e) {
             $run->update([
                 'status'       => AssistantRun::STATUS_FAILED,
                 'error'        => $e->getMessage(),
                 'completed_at' => now(),
             ]);
+
+            AssistantRunCompleted::dispatch($run->fresh());
         }
     }
 }

@@ -3,6 +3,7 @@
 namespace TitanZero\FilamentChatbot\Http\Livewire;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
 use TitanZero\FilamentChatbot\Jobs\ProcessAssistantRunJob;
 use TitanZero\FilamentChatbot\Models\AssistantRun;
@@ -26,16 +27,20 @@ class AssistantSidebar extends Component
     /** The active thread ID */
     public ?int $threadId = null;
 
-    /** Contextual data passed from the current page (set via Alpine/JS) */
+    /** Contextual data passed from the current page (set via Alpine/JS or a Filament page) */
     public array $pageContext = [];
 
     /** Whether the assistant is currently processing a run */
     public bool $processing = false;
 
+    /** Authenticated user ID (used to scope the Echo channel) */
+    public ?int $userId = null;
+
     public function mount(): void
     {
         $this->assistantKey = config('assistant.default_assistant', 'default');
         $this->open         = (bool) config('assistant.sidebar.open_by_default', false);
+        $this->userId       = Auth::id();
         $this->loadThread();
     }
 
@@ -78,6 +83,26 @@ class AssistantSidebar extends Component
         }
     }
 
+    /**
+     * Receive context from the current Filament page.
+     *
+     * Call this from any Filament page component or Blade template:
+     *   $wire('chatbot-assistant-sidebar').captureContext({ record: {...} })
+     *
+     * Or dispatch a browser event from a Filament page:
+     *   dispatch('assistant-context', { resource: 'order', id: 42, data: {...} })
+     *
+     * @param  array<string, mixed>  $context
+     */
+    public function captureContext(array $context): void
+    {
+        $this->pageContext = $context;
+
+        if ($this->threadId) {
+            AssistantThread::find($this->threadId)?->update(['context' => $context]);
+        }
+    }
+
     public function send(): void
     {
         $input = trim($this->message);
@@ -85,6 +110,23 @@ class AssistantSidebar extends Component
         if ($input === '' || ! Auth::check()) {
             return;
         }
+
+        // --- Upgrade 5: rate limiting ---
+        $rateLimitKey = 'assistant.send.' . $this->userIdentifier();
+        $maxPerMinute = (int) config('assistant.rate_limit.per_minute', 20);
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, $maxPerMinute)) {
+            $secondsUntilFree = RateLimiter::availableIn($rateLimitKey);
+            $this->messages[] = [
+                'role'    => 'assistant',
+                'content' => "⚠ Too many requests. Please wait {$secondsUntilFree}s before sending another message.",
+                'status'  => 'failed',
+            ];
+
+            return;
+        }
+
+        RateLimiter::hit($rateLimitKey, 60);
 
         $this->message    = '';
         $this->processing = true;
@@ -119,7 +161,37 @@ class AssistantSidebar extends Component
     }
 
     /**
-     * Called by a Livewire poll / echo event to refresh the pending run result.
+     * Handle a real-time run-completion broadcast from Laravel Reverb.
+     *
+     * Registered dynamically in getListeners() on the private Echo channel
+     * `assistant.user.{userId}`. The event name is AssistantRunCompleted.
+     *
+     * @param  array<string, mixed>  $event
+     */
+    public function handleRunCompleted(array $event): void
+    {
+        $runId = (int) ($event['run_id'] ?? 0);
+
+        foreach ($this->messages as $idx => $msg) {
+            if (($msg['run_id'] ?? 0) !== $runId) {
+                continue;
+            }
+
+            if ($event['status'] === AssistantRun::STATUS_COMPLETED) {
+                $this->messages[$idx]['content'] = $event['output'] ?? '';
+                $this->messages[$idx]['status']  = AssistantRun::STATUS_COMPLETED;
+            } else {
+                $this->messages[$idx]['content'] = '⚠ ' . ($event['error'] ?? 'The assistant encountered an error.');
+                $this->messages[$idx]['status']  = AssistantRun::STATUS_FAILED;
+            }
+        }
+
+        $this->processing = collect($this->messages)->contains(fn ($m) => ($m['status'] ?? '') === 'pending');
+    }
+
+    /**
+     * Poll-based fallback for when Reverb / WebSockets are unavailable.
+     * The Blade template uses wire:poll only when no pending messages exist.
      */
     public function refreshRuns(): void
     {
@@ -141,15 +213,12 @@ class AssistantSidebar extends Component
             if ($run->isCompleted()) {
                 $this->messages[$idx]['content'] = $run->output ?? '';
                 $this->messages[$idx]['status']  = 'completed';
-                $this->processing                = false;
             } elseif ($run->isFailed()) {
                 $this->messages[$idx]['content'] = '⚠ ' . ($run->error ?? 'The assistant encountered an error.');
                 $this->messages[$idx]['status']  = 'failed';
-                $this->processing                = false;
             }
         }
 
-        // Check if any run is still pending/processing
         $this->processing = collect($this->messages)->contains(fn ($m) => ($m['status'] ?? '') === 'pending');
     }
 
@@ -158,10 +227,31 @@ class AssistantSidebar extends Component
         $assistants = config('assistant.assistants', []);
 
         return view('filament-chatbot::livewire.assistant-sidebar', [
-            'assistants' => $assistants,
+            'assistants'    => $assistants,
             'sidebarConfig' => config('assistant.sidebar', []),
             'buttonConfig'  => config('assistant.button', []),
         ]);
+    }
+
+    /**
+     * Dynamic Livewire listeners — registers the private Echo channel using the
+     * actual authenticated user ID, which is only known at runtime.
+     *
+     * When Reverb/Echo is active, `handleRunCompleted` fires instantly on run
+     * completion. The poll in the Blade template is an independent fallback for
+     * environments without WebSockets.
+     *
+     * @return array<string, string>
+     */
+    public function getListeners(): array
+    {
+        $listeners = [];
+
+        if ($this->userId) {
+            $listeners["echo-private:assistant.user.{$this->userId},AssistantRunCompleted"] = 'handleRunCompleted';
+        }
+
+        return $listeners;
     }
 
     // -------------------------------------------------------------------------
@@ -195,3 +285,4 @@ class AssistantSidebar extends Component
         }
     }
 }
+
