@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Extensions\Chatbot\System\Models;
+namespace TitanZero\FilamentChatbot\Models;
 
-use App\Extensions\Chatbot\System\Enums\EmbeddingTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class ChatbotEmbedding extends Model
@@ -23,6 +22,6 @@ class ChatbotEmbedding extends Model
 
     protected $casts = [
         'embedding' => 'json',
-        'type'      => EmbeddingTypeEnum::class,
+        'type'      => 'string',
     ];
 }
