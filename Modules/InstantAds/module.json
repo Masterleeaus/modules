@@ -1,0 +1,32 @@
+{
+    "name": "InstantAds",
+    "alias": "instantads",
+    "description": "Fast AI ad creative generator — describe it, generate it, use it. DALL-E, Stable Diffusion, Flux, Replicate support with batch variants and real-time streaming.",
+    "keywords": ["ai", "ads", "image", "creative", "marketing", "dalle", "stable-diffusion", "flux"],
+    "priority": 0,
+    "version": "1.0",
+    "active": 1,
+    "requires": [],
+    "providers": [
+        "Modules\\InstantAds\\Providers\\InstantAdsServiceProvider",
+        "Modules\\InstantAds\\Providers\\RouteServiceProvider"
+    ],
+    "files": [],
+    "permissions": [
+        "use_instant_ads",
+        "manage_instant_ads"
+    ],
+    "roles_permissions": {
+        "admin": ["use_instant_ads", "manage_instant_ads"],
+        "employee": ["use_instant_ads"]
+    },
+    "menus": [
+        {
+            "panel": "user",
+            "label": "InstantAds",
+            "route": "instant-ads.index",
+            "sort_order": 95
+        }
+    ],
+    "sidebar_menu": true
+}

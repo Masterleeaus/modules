@@ -1,0 +1,35 @@
+{
+    "name": "TitanIntegrations",
+    "alias": "titanintegrations",
+    "description": "Unified integration hub — BYO API keys, OAuth connections, REST API, webhooks, Google Calendar, Xero, HubSpot, Mailchimp, Slack, Zapier and more",
+    "keywords": ["integrations", "oauth", "api", "webhooks", "google-calendar", "xero", "hubspot"],
+    "priority": 0,
+    "providers": [
+        "Modules\\TitanIntegrations\\Providers\\TitanIntegrationsServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "active": 1,
+    "requires": [],
+    "permissions": [
+        "view_integrations",
+        "manage_integrations",
+        "manage_api_tokens",
+        "manage_webhooks",
+        "view_integration_logs"
+    ],
+    "roles_permissions": {
+        "admin": ["view_integrations", "manage_integrations", "manage_api_tokens", "manage_webhooks", "view_integration_logs"],
+        "manager": ["view_integrations", "view_integration_logs"]
+    },
+    "menus": [
+        {
+            "panel": "user",
+            "label": "Integrations",
+            "route": "titan-integrations.index",
+            "icon": "puzzle-piece",
+            "sort_order": 98
+        }
+    ],
+    "sidebar_menu": true
+}

@@ -1,0 +1,21 @@
+{
+    "name": "worksuite/proshots",
+    "description": "ProShots — Professional AI Product Photography for WorkSuite.",
+    "authors": [
+        {
+            "name": "Worksuite",
+            "email": "support@worksuite.biz"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ProShots\\": ""
+        }
+    }
+}

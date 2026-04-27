@@ -1,0 +1,21 @@
+{
+    "name": "worksuite/titan-vault",
+    "description": "TitanVault — Proof Review and Document Vault for WorkSuite.",
+    "authors": [
+        {
+            "name": "Worksuite",
+            "email": "support@worksuite.biz"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\TitanVault\\": ""
+        }
+    }
+}

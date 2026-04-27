@@ -1,0 +1,15 @@
+{
+    "name": "nwidart/onboardingpro",
+    "description": "OnboardingPro module for Worksuite",
+    "authors": [{"name": "Worksuite"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\OnboardingPro\\Providers\\OnboardingProServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\OnboardingPro\\": ""
+        }
+    }
+}
