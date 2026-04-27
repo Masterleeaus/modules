@@ -11,6 +11,7 @@ interface Job {
     address: string | null;
     technician: string | null;
     invoice_id: number | null;
+    review_token: string;
     has_review: boolean;
 }
 
@@ -140,7 +141,7 @@ function statusLabel(status: string): string {
                         <div class="flex items-center gap-3">
                             <Link
                                 v-if="!job.has_review"
-                                :href="`/review/${btoa(String(job.id))}`"
+                                :href="`/review/${job.review_token}`"
                                 class="text-xs text-slate-400 hover:text-slate-700 underline"
                             >
                                 Leave review

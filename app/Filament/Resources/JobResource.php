@@ -230,10 +230,4 @@ class JobResource extends Resource
             ->where('organization_id', auth()->user()?->organization_id)
             ->with(['customer', 'assignedTechnician', 'jobType']);
     }
-
-    protected static function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['organization_id'] = auth()->user()?->organization_id;
-        return $data;
-    }
 }

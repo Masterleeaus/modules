@@ -136,7 +136,7 @@
             };
 
             return {
-                hasMapsKey: !!'{{ config("services.google.maps_key", env("VITE_GOOGLE_MAPS_API_KEY", "")) }}',
+                hasMapsKey: !!'{{ config("services.google.maps_key", "") }}',
                 techs: [],
                 focused: null,
                 showTrails: false,
@@ -146,7 +146,7 @@
                 pollTimer: null,
 
                 init() {
-                    this.hasMapsKey = !!('{{ env("VITE_GOOGLE_MAPS_API_KEY", "") }}');
+                    this.hasMapsKey = !!'{{ config("services.google.maps_key", "") }}';
                     if (this.hasMapsKey) {
                         this.loadGoogleMaps();
                     } else {
@@ -155,7 +155,7 @@
                 },
 
                 loadGoogleMaps() {
-                    const key = '{{ env("VITE_GOOGLE_MAPS_API_KEY", "") }}';
+                    const key = '{{ config("services.google.maps_key", "") }}';
                     if (!key) return;
                     if (window.google?.maps) {
                         this.initMap();

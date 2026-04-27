@@ -60,7 +60,7 @@ class DispatchController extends Controller
             ->keyBy('user_id');
 
         // Active (en-route / in-progress) jobs — include crew members too
-        $crewJobIds = \App\Models\JobCrew::whereIn('user_id', $techIds)->pluck('job_id');
+        $crewJobIds = JobCrew::whereIn('user_id', $techIds)->pluck('job_id');
 
         $activeJobs = Job::where(function ($q) use ($techIds, $crewJobIds) {
                 $q->whereIn('assigned_to', $techIds)

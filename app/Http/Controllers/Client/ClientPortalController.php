@@ -138,6 +138,7 @@ class ClientPortalController extends Controller
             'address'      => $job->property?->full_address,
             'technician'   => $job->assignedTechnician?->name,
             'invoice_id'   => $job->invoice?->id,
+            'review_token' => base64_encode((string) $job->id),
             'has_review'   => $job->relationLoaded('review') && $job->review !== null,
         ];
     }
