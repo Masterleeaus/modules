@@ -1,0 +1,11 @@
+{
+    "name": "ZeroPay",
+    "alias": "zeropay",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        
+    ],
+    "files": []
+}

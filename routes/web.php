@@ -1,0 +1,197 @@
+<?php
+
+use App\Http\Controllers\Owner\BillingController;
+use App\Http\Controllers\Owner\CalendarController;
+use App\Http\Controllers\Owner\DispatchController;
+use App\Http\Controllers\Owner\CustomerController;
+use App\Http\Controllers\Owner\EstimateController;
+use App\Http\Controllers\Owner\InvoiceController;
+use App\Http\Controllers\Owner\JobController;
+use App\Http\Controllers\Owner\PropertyController;
+use App\Http\Controllers\Owner\ReportingController;
+use App\Http\Controllers\Owner\SetupController;
+use App\Http\Controllers\Owner\SettingsController;
+use App\Http\Controllers\Owner\StripeController;
+use App\Http\Controllers\Owner\SubscriptionController;
+use App\Http\Controllers\Owner\TeamController;
+use App\Http\Controllers\HealthController;
+use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\CmsPageController;
+use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
+use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\PublicEstimateController;
+use App\Http\Controllers\Technician\DashboardController as TechnicianDashboardController;
+use App\Http\Controllers\Technician\JobController as TechnicianJobController;
+use Illuminate\Support\Facades\Route;
+
+// Root: guests see the marketing page; authenticated users go to their dashboard
+Route::get('/', function () {
+    if (auth()->check()) {
+        $user = auth()->user();
+        if ($user->hasRole('super_admin')) {
+            return redirect()->route('platform.dashboard');
+        }
+        if ($user->hasRole('technician')) {
+            return redirect()->route('technician.dashboard');
+        }
+        return redirect()->route('owner.dashboard');
+    }
+    return app(MarketingController::class)->index();
+})->name('home');
+
+// Named 'dashboard' route — used by Fortify post-login redirect and internal links
+Route::get('/dashboard', function () {
+    $user = auth()->user();
+    if ($user->hasRole('super_admin')) {
+        return redirect()->route('platform.dashboard');
+    }
+    if ($user->hasRole('technician')) {
+        return redirect()->route('technician.dashboard');
+    }
+    return redirect()->route('owner.dashboard');
+})->middleware('auth')->name('dashboard');
+
+// ── Platform SaaS admin — cross-tenant controls for self-hosted operators ──
+Route::middleware(['auth', 'verified', 'role:super_admin'])
+    ->prefix('platform')
+    ->name('platform.')
+    ->group(function () {
+        Route::get('/dashboard', [PlatformDashboardController::class, 'index'])->name('dashboard');
+        Route::patch('/organizations/{organization}', [PlatformDashboardController::class, 'updateOrganization'])->name('organizations.update');
+        Route::patch('/organizations/{organization}/subscription', [PlatformDashboardController::class, 'updateSubscription'])->name('organizations.subscription.update');
+        Route::post('/organizations/{organization}/extend-trial', [PlatformDashboardController::class, 'extendTrial'])->name('organizations.extend-trial');
+        Route::post('/organizations/{organization}/activate', [PlatformDashboardController::class, 'activate'])->name('organizations.activate');
+    });
+// ── Subscription routes — outside subscription middleware so expired users can reach them ──
+Route::middleware(['auth', 'role:owner|admin'])
+    ->prefix('owner')
+    ->name('owner.')
+    ->group(function () {
+        Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+        Route::post('/subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
+        Route::get('/subscription/success', [SubscriptionController::class, 'success'])->name('subscription.success');
+        Route::get('/subscription/expired', [SubscriptionController::class, 'expired'])->name('subscription.expired');
+    });
+
+// ── Setup wizard — no subscription check (org has no data yet) ──────────────
+Route::middleware(['auth', 'verified', 'role:owner|admin'])
+    ->prefix('owner')
+    ->name('owner.')
+    ->group(function () {
+        Route::get('/setup', [SetupController::class, 'show'])->name('setup');
+        Route::post('/setup/company', [SetupController::class, 'saveCompany'])->name('setup.company');
+        Route::post('/setup/job-types', [SetupController::class, 'addJobType'])->name('setup.job-types.store');
+        Route::delete('/setup/job-types/{jobType}', [SetupController::class, 'removeJobType'])->name('setup.job-types.destroy');
+        Route::post('/setup/technicians', [SetupController::class, 'addTechnician'])->name('setup.technicians.store');
+        Route::post('/setup/complete', [SetupController::class, 'complete'])->name('setup.complete');
+    });
+
+// ── Team management — owner/admin only, subscription-gated ───────────────────
+Route::middleware(['auth', 'verified', 'role:owner|admin', 'subscription'])
+    ->prefix('owner')
+    ->name('owner.')
+    ->group(function () {
+        Route::get('/team', [TeamController::class, 'index'])->name('team.index');
+        Route::post('/team', [TeamController::class, 'store'])->name('team.store');
+        Route::patch('/team/{user}', [TeamController::class, 'update'])->name('team.update');
+        Route::delete('/team/{user}', [TeamController::class, 'destroy'])->name('team.destroy');
+    });
+
+Route::middleware(['auth', 'verified', 'role:owner|admin|dispatcher|bookkeeper', 'subscription'])
+    ->prefix('owner')
+    ->name('owner.')
+    ->group(function () {
+        Route::resource('customers', CustomerController::class);
+
+        // Properties — nested create/store under customer; shallow edit/update/destroy
+        Route::get('/customers/{customer}/properties/create', [PropertyController::class, 'create'])->name('customers.properties.create');
+        Route::post('/customers/{customer}/properties', [PropertyController::class, 'store'])->name('customers.properties.store');
+        Route::get('/properties/{property}/edit', [PropertyController::class, 'edit'])->name('properties.edit');
+        Route::patch('/properties/{property}', [PropertyController::class, 'update'])->name('properties.update');
+        Route::delete('/properties/{property}', [PropertyController::class, 'destroy'])->name('properties.destroy');
+
+        Route::resource('jobs', JobController::class);
+        Route::patch('/jobs/{job}/status', [JobController::class, 'updateStatus'])->name('jobs.status');
+        Route::patch('/jobs/{job}/reschedule', [JobController::class, 'reschedule'])->name('jobs.reschedule');
+        Route::patch('/jobs/{job}/reassign', [JobController::class, 'reassign'])->name('jobs.reassign');
+
+        Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
+        Route::get('/calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
+
+        Route::resource('estimates', EstimateController::class);
+        Route::post('/estimates/{estimate}/send', [EstimateController::class, 'send'])->name('estimates.send');
+        Route::post('/estimates/{estimate}/convert', [EstimateController::class, 'convertToJob'])->name('estimates.convert');
+
+        Route::get('/dispatch', [DispatchController::class, 'index'])->name('dispatch');
+        Route::get('/dispatch/technicians', [DispatchController::class, 'technicianLocations'])->name('dispatch.technicians');
+        Route::get('/dispatch/technicians/{user}/trail', [DispatchController::class, 'technicianTrail'])->name('dispatch.trail');
+
+        Route::get('/billing', [BillingController::class, 'index'])->name('billing');
+
+        // Reporting
+        Route::get('/dashboard', [ReportingController::class, 'dashboard'])->name('dashboard');
+        Route::get('/reports/jobs-by-type', [ReportingController::class, 'jobsByType'])->name('reports.jobs-by-type');
+        Route::get('/reports/job-profitability', [ReportingController::class, 'jobProfitability'])->name('reports.job-profitability');
+        Route::get('/reports/technician-performance', [ReportingController::class, 'technicianPerformance'])->name('reports.technician-performance');
+
+        // Company & integration settings
+        Route::get('/settings/company', [SettingsController::class, 'company'])->name('settings.company');
+        Route::post('/settings/company', [SettingsController::class, 'updateCompany'])->name('settings.company.update');
+        Route::get('/settings/integrations', [SettingsController::class, 'integrations'])->name('settings.integrations');
+        Route::post('/settings/integrations', [SettingsController::class, 'updateIntegrations'])->name('settings.integrations.update');
+        Route::resource('invoices', InvoiceController::class)->only(['index', 'show', 'destroy']);
+        Route::post('/jobs/{job}/invoice', [InvoiceController::class, 'generateFromJob'])->name('jobs.invoice.generate');
+        Route::post('/invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
+        Route::post('/invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
+        Route::post('/invoices/{invoice}/payments', [InvoiceController::class, 'recordPayment'])->name('invoices.payments.store');
+        Route::post('/invoices/{invoice}/checkout', [StripeController::class, 'createCheckoutSession'])->name('invoices.checkout');
+    });
+
+// Public estimate page — no auth required
+Route::get('/estimates/{token}', [PublicEstimateController::class, 'show'])->name('estimates.public');
+Route::post('/estimates/{token}/accept', [PublicEstimateController::class, 'accept'])->name('estimates.accept');
+Route::post('/estimates/{token}/decline', [PublicEstimateController::class, 'decline'])->name('estimates.decline');
+
+Route::middleware(['auth', 'role:technician'])
+    ->prefix('technician')
+    ->name('technician.')
+    ->group(function () {
+        Route::get('/dashboard', [TechnicianDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/jobs', [TechnicianJobController::class, 'index'])->name('jobs.index');
+        Route::get('/jobs/{job}', [TechnicianJobController::class, 'show'])->name('jobs.show');
+    });
+
+// Health checks — no auth, no CSRF, used by uptime monitors and orchestrators
+Route::get('/health', [HealthController::class, 'liveness'])->name('health');
+Route::get('/health/ready', [HealthController::class, 'readiness'])->name('health.ready');
+
+// Stripe webhook — no auth, CSRF excluded in bootstrap/app.php, signature verified in controller
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])
+    ->name('stripe.webhook');
+
+
+
+// Public Titan BOS marketing, app, Service Mode, and CMS pages.
+Route::get('/platform', fn () => app(CmsPageController::class)->show('platform'))->name('platform.public');
+Route::get('/platform-overview', fn () => redirect('/platform'))->name('platform.overview');
+Route::get('/apps', fn () => app(CmsPageController::class)->show('apps'))->name('apps.index');
+Route::get('/apps/{slug}', fn (string $slug) => app(CmsPageController::class)->show('app-'.$slug))->name('apps.show');
+Route::get('/service-modes', fn () => app(CmsPageController::class)->show('service-modes'))->name('service-modes.index');
+Route::get('/industries', fn () => app(CmsPageController::class)->show('industries'))->name('industries.index');
+Route::get('/pricing', fn () => app(CmsPageController::class)->show('pricing'))->name('pricing');
+Route::get('/zero-philosophy', fn () => app(CmsPageController::class)->show('zero-philosophy'))->name('zero-philosophy');
+Route::get('/zero', fn () => app(CmsPageController::class)->show('zero-philosophy'))->name('zero');
+Route::get('/security', fn () => app(CmsPageController::class)->show('security'))->name('security');
+Route::get('/ai-strategy', fn () => app(CmsPageController::class)->show('ai-strategy'))->name('ai-strategy');
+Route::get('/automation-engine', fn () => app(CmsPageController::class)->show('automation-engine'))->name('automation-engine');
+Route::get('/how-it-works', fn () => app(CmsPageController::class)->show('how-it-works'))->name('how-it-works');
+Route::get('/features', fn () => app(CmsPageController::class)->show('features'))->name('features');
+Route::get('/faq', fn () => app(CmsPageController::class)->show('faq'))->name('faq');
+Route::get('/about', fn () => app(CmsPageController::class)->show('about'))->name('about');
+Route::get('/contact', fn () => app(CmsPageController::class)->show('contact'))->name('contact');
+Route::get('/zeropay', fn () => app(CmsPageController::class)->show('zeropay'))->name('zeropay');
+Route::get('/verticals', fn () => redirect('/service-modes'))->name('verticals.index');
+Route::get('/verticals/{slug}', fn (string $slug) => redirect('/service-modes'))->name('verticals.show');
+Route::get('/pages/{slug}', [CmsPageController::class, 'show'])->name('cms.pages.show');
+
+require __DIR__.'/auth.php';
