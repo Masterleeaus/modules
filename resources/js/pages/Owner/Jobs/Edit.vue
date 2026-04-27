@@ -2,25 +2,17 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import JobForm from './partials/JobForm.vue';
+import type { Job, Customer, JobType, UserRef, Property } from '@/types';
 
-interface Customer {
-    id: number; first_name: string; last_name: string;
-    properties: { id: number; address_line1: string; city: string; state: string }[];
-}
-interface JobType    { id: number; name: string; color: string }
-interface Technician { id: number; name: string }
-interface Job {
-    id: number; title: string; description: string | null;
-    customer_id: number | null; property_id: number | null;
-    job_type_id: number | null; assigned_to: number | null;
-    scheduled_at: string | null; office_notes: string | null;
-}
+// JobForm expects properties to always be present and color to be non-null
+type CustomerWithProperties = Customer & { properties: Property[] };
+type JobTypeWithColor = JobType & { color: string };
 
 const props = defineProps<{
     job: Job;
-    customers: Customer[];
-    jobTypes: JobType[];
-    technicians: Technician[];
+    customers: CustomerWithProperties[];
+    jobTypes: JobTypeWithColor[];
+    technicians: UserRef[];
 }>();
 
 // datetime-local input expects "YYYY-MM-DDTHH:mm"

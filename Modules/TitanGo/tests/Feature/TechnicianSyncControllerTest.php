@@ -31,15 +31,15 @@ test('technician can batch sync status and notes mutations', function () {
     [$tech, $job] = syncTechWithJob();
 
     $this->actingAs($tech)
-        ->postJson('/api/technician/sync', [
+        ->postJson('/api/v1/technician/sync', [
             'mutations' => [
                 ['type' => 'status', 'job_id' => $job->id, 'status' => 'in_progress'],
                 ['type' => 'notes',  'job_id' => $job->id, 'technician_notes' => 'All done.'],
             ],
         ])
         ->assertOk()
-        ->assertJsonPath('status', 'ok')
-        ->assertJsonCount(2, 'results');
+        ->assertJsonPath('data.status', 'ok')
+        ->assertJsonCount(2, 'data.results');
 
     expect($job->fresh()->status)->toBe('in_progress');
     expect($job->fresh()->technician_notes)->toBe('All done.');
@@ -49,14 +49,14 @@ test('batch sync returns 207 with partial status on error', function () {
     [$tech, $job] = syncTechWithJob();
 
     $this->actingAs($tech)
-        ->postJson('/api/technician/sync', [
+        ->postJson('/api/v1/technician/sync', [
             'mutations' => [
                 ['type' => 'status', 'job_id' => $job->id, 'status' => 'in_progress'],
                 ['type' => 'status', 'job_id' => $job->id, 'status' => 'invalid_status'],
             ],
         ])
         ->assertStatus(207)
-        ->assertJsonPath('status', 'partial');
+        ->assertJsonPath('data.status', 'partial');
 });
 
 test('batch sync rejects mutations for jobs not assigned to technician', function () {
@@ -66,20 +66,20 @@ test('batch sync rejects mutations for jobs not assigned to technician', functio
     $job   = Job::factory()->create(['organization_id' => $org->id, 'assigned_to' => $other->id]);
 
     $this->actingAs($tech)
-        ->postJson('/api/technician/sync', [
+        ->postJson('/api/v1/technician/sync', [
             'mutations' => [
                 ['type' => 'status', 'job_id' => $job->id, 'status' => 'in_progress'],
             ],
         ])
         ->assertStatus(207)
-        ->assertJsonPath('results.0.status', 'error');
+        ->assertJsonPath('data.results.0.status', 'error');
 });
 
 test('batch sync can create line items', function () {
     [$tech, $job] = syncTechWithJob();
 
     $this->actingAs($tech)
-        ->postJson('/api/technician/sync', [
+        ->postJson('/api/v1/technician/sync', [
             'mutations' => [
                 [
                     'type'       => 'line_item_create',
@@ -107,7 +107,7 @@ test('batch sync can toggle checklist item', function () {
     ]);
 
     $this->actingAs($tech)
-        ->postJson('/api/technician/sync', [
+        ->postJson('/api/v1/technician/sync', [
             'mutations' => [
                 ['type' => 'checklist', 'job_id' => $job->id, 'item_id' => $item->id, 'completed' => true],
             ],
@@ -118,7 +118,7 @@ test('batch sync can toggle checklist item', function () {
 });
 
 test('guest cannot call batch sync', function () {
-    $this->postJson('/api/technician/sync', ['mutations' => []])
+    $this->postJson('/api/v1/technician/sync', ['mutations' => []])
         ->assertUnauthorized();
 });
 
@@ -126,6 +126,6 @@ test('batch sync validates mutations array is required', function () {
     [$tech] = syncTechWithJob();
 
     $this->actingAs($tech)
-        ->postJson('/api/technician/sync', [])
+        ->postJson('/api/v1/technician/sync', [])
         ->assertUnprocessable();
 });

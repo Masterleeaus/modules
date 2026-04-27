@@ -1,0 +1,15 @@
+{
+  "module_id": "TitanGo",
+  "version": "1.0.0",
+  "install": [
+    "RunMigrations",
+    "SeedDefaultData",
+    "RegisterSignals",
+    "SeedDefaultTemplates"
+  ],
+  "post_install": [
+    "VerifyDatabaseTables"
+  ],
+  "upgrade": {},
+  "rollback": []
+}

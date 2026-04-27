@@ -119,7 +119,7 @@ test('technician cannot view a job assigned to another technician', function () 
         ->assertForbidden();
 });
 
-// ── JSON API: GET /api/technician/jobs/today ──────────────────────────────────
+// ── JSON API: GET /api/v1/technician/jobs/today ──────────────────────────────────
 
 test('api today returns technician\'s jobs for today', function () {
     [$technician, , $customer] = techJobSetup();
@@ -131,7 +131,7 @@ test('api today returns technician\'s jobs for today', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson('/api/technician/jobs/today')
+        ->getJson('/api/v1/technician/jobs/today')
         ->assertOk()
         ->assertJsonCount(3, 'data');
 });
@@ -151,7 +151,7 @@ test('api today excludes jobs not scheduled for today', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson('/api/technician/jobs/today')
+        ->getJson('/api/v1/technician/jobs/today')
         ->assertOk()
         ->assertJsonCount(1, 'data');
 });
@@ -173,7 +173,7 @@ test('api today excludes jobs assigned to other technicians', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson('/api/technician/jobs/today')
+        ->getJson('/api/v1/technician/jobs/today')
         ->assertJsonCount(1, 'data');
 });
 
@@ -192,7 +192,7 @@ test('api today excludes cancelled jobs', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson('/api/technician/jobs/today')
+        ->getJson('/api/v1/technician/jobs/today')
         ->assertJsonCount(1, 'data');
 });
 
@@ -207,7 +207,7 @@ test('api today response contains expected job fields', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson('/api/technician/jobs/today')
+        ->getJson('/api/v1/technician/jobs/today')
         ->assertOk()
         ->assertJsonStructure([
             'data' => [
@@ -216,7 +216,7 @@ test('api today response contains expected job fields', function () {
         ]);
 });
 
-// ── JSON API: GET /api/technician/jobs/{job} ──────────────────────────────────
+// ── JSON API: GET /api/v1/technician/jobs/{job} ──────────────────────────────────
 
 test('api show returns the technician\'s assigned job', function () {
     [$technician, , $customer] = techJobSetup();
@@ -228,7 +228,7 @@ test('api show returns the technician\'s assigned job', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson("/api/technician/jobs/{$job->id}")
+        ->getJson("/api/v1/technician/jobs/{$job->id}")
         ->assertOk()
         ->assertJsonPath('data.id', $job->id)
         ->assertJsonPath('data.title', 'Pipe Fix');
@@ -244,11 +244,11 @@ test('api show blocks access to another technician\'s job', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson("/api/technician/jobs/{$job->id}")
+        ->getJson("/api/v1/technician/jobs/{$job->id}")
         ->assertForbidden();
 });
 
-// ── JSON API: PATCH /api/technician/jobs/{job}/status ────────────────────────
+// ── JSON API: PATCH /api/v1/technician/jobs/{job}/status ────────────────────────
 
 test('technician can update job status to en_route', function () {
     [$technician, , $customer] = techJobSetup();
@@ -259,9 +259,9 @@ test('technician can update job status to en_route', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'en_route'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'en_route'])
         ->assertOk()
-        ->assertJsonPath('status', 'ok');
+        ->assertJsonPath('success', true);
 
     expect($job->fresh()->status)->toBe(Job::STATUS_EN_ROUTE);
 });
@@ -275,7 +275,7 @@ test('en_route does not stamp arrived_at', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'en_route'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'en_route'])
         ->assertOk();
 
     expect($job->fresh()->arrived_at)->toBeNull();
@@ -290,7 +290,7 @@ test('updating status to in_progress sets both arrived_at and started_at', funct
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'in_progress'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'in_progress'])
         ->assertOk();
 
     $fresh = $job->fresh();
@@ -312,7 +312,7 @@ test('in_progress does not overwrite existing arrived_at or started_at', functio
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'in_progress'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'in_progress'])
         ->assertOk();
 
     $fresh = $job->fresh();
@@ -330,7 +330,7 @@ test('updating status to completed sets completed_at timestamp', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'completed'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'completed'])
         ->assertOk();
 
     expect($job->fresh()->completed_at)->not->toBeNull();
@@ -348,7 +348,7 @@ test('updating status to on_hold does not set any timestamp', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'on_hold'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'on_hold'])
         ->assertOk();
 
     expect($job->fresh()->status)->toBe(Job::STATUS_ON_HOLD);
@@ -365,7 +365,7 @@ test('technician cannot set status to cancelled', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'cancelled'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'cancelled'])
         ->assertUnprocessable();
 
     expect($job->fresh()->status)->toBe(Job::STATUS_SCHEDULED);
@@ -380,7 +380,7 @@ test('status update rejects an invalid status value', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'flying'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'flying'])
         ->assertUnprocessable();
 });
 
@@ -394,11 +394,11 @@ test('technician cannot update status on another technician\'s job', function ()
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'en_route'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'en_route'])
         ->assertForbidden();
 });
 
-// ── JSON API: PATCH /api/technician/jobs/{job}/notes ─────────────────────────
+// ── JSON API: PATCH /api/v1/technician/jobs/{job}/notes ─────────────────────────
 
 test('technician can save their notes on a job', function () {
     [$technician, , $customer] = techJobSetup();
@@ -409,11 +409,11 @@ test('technician can save their notes on a job', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/notes", [
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/notes", [
             'technician_notes' => 'Replaced capacitor. All working.',
         ])
         ->assertOk()
-        ->assertJsonPath('status', 'ok');
+        ->assertJsonPath('success', true);
 
     expect($job->fresh()->technician_notes)->toBe('Replaced capacitor. All working.');
 });
@@ -428,7 +428,7 @@ test('technician can clear their notes by passing null', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/notes", ['technician_notes' => null])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/notes", ['technician_notes' => null])
         ->assertOk();
 
     expect($job->fresh()->technician_notes)->toBeNull();
@@ -444,7 +444,7 @@ test('technician cannot update notes on another technician\'s job', function () 
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/notes", [
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/notes", [
             'technician_notes' => 'Sneaky notes',
         ])
         ->assertForbidden();
@@ -459,7 +459,7 @@ test('notes update rejects a value exceeding the maximum length', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/notes", [
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/notes", [
             'technician_notes' => str_repeat('x', 5001),
         ])
         ->assertUnprocessable();
@@ -476,7 +476,7 @@ test('technician can save customer-facing notes on a job', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/customer-notes", [
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/customer-notes", [
             'customer_notes' => 'Replaced filter. No issues found.',
         ])
         ->assertOk();
@@ -494,7 +494,7 @@ test('technician can clear customer notes by passing null', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/customer-notes", ['customer_notes' => null])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/customer-notes", ['customer_notes' => null])
         ->assertOk();
 
     expect($job->fresh()->customer_notes)->toBeNull();
@@ -510,7 +510,7 @@ test('technician cannot update customer notes on another technician\'s job', fun
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/customer-notes", [
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/customer-notes", [
             'customer_notes' => 'Sneaky notes',
         ])
         ->assertForbidden();
@@ -525,7 +525,7 @@ test('customer notes update rejects a value exceeding the maximum length', funct
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/customer-notes", [
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/customer-notes", [
             'customer_notes' => str_repeat('x', 5001),
         ])
         ->assertUnprocessable();

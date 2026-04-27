@@ -1,6 +1,10 @@
 import { InertiaLinkProps } from '@inertiajs/vue3';
 import type { LucideIcon } from 'lucide-vue-next';
 
+// Re-export domain entity types and API response types for convenience
+export type * from './domain';
+export type * from './api';
+
 export interface Auth {
     user: User;
     roles: string[];

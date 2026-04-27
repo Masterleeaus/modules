@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\Modules\InstallModuleCommand;
+use App\Console\Commands\Modules\ModuleStatusCommand;
+use App\Console\Commands\Modules\UpgradeModuleCommand;
+use App\Console\Commands\Modules\VerifyModuleCommand;
 use App\Events\EstimateSent;
 use App\Events\InvoiceSent;
 use App\Events\JobCreated;
@@ -11,6 +15,7 @@ use App\Listeners\HandleJobCreatedSendSmsConfirmation;
 use App\Listeners\HandleJobStatusChangedSendNotifications;
 use App\Listeners\SendEstimateNotification;
 use App\Listeners\SendInvoiceNotification;
+use App\Modules\ModuleInstaller;
 use App\Services\GeocodingService;
 use App\Services\MessageDispatcher;
 use App\Services\SmsService;
@@ -24,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->singleton(ModuleInstaller::class);
+
         $this->app->bind(SmsService::class, TwilioSmsService::class);
 
         $this->app->singleton(GeocodingService::class, fn () =>
@@ -40,6 +47,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                InstallModuleCommand::class,
+                UpgradeModuleCommand::class,
+                VerifyModuleCommand::class,
+                ModuleStatusCommand::class,
+            ]);
+        }
 
         Event::listen(EstimateSent::class, SendEstimateNotification::class);
         Event::listen(InvoiceSent::class, SendInvoiceNotification::class);

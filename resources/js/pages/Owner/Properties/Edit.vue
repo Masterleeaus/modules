@@ -2,25 +2,7 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import PropertyForm from './partials/PropertyForm.vue';
-
-interface Customer {
-    id: number;
-    first_name: string;
-    last_name: string;
-}
-
-interface Property {
-    id: number;
-    customer_id: number;
-    name: string | null;
-    address_line1: string;
-    address_line2: string | null;
-    city: string;
-    state: string;
-    postal_code: string;
-    country: string;
-    notes: string | null;
-}
+import type { Customer, Property } from '@/types';
 
 const props = defineProps<{ property: Property; customer: Customer }>();
 
@@ -31,7 +13,7 @@ const form = useForm({
     city: props.property.city,
     state: props.property.state,
     postal_code: props.property.postal_code,
-    country: props.property.country,
+    country: props.property.country ?? 'US',
     notes: props.property.notes ?? '',
 });
 

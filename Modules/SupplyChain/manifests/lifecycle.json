@@ -1,0 +1,17 @@
+{
+  "module_id": "SupplyChain",
+  "version": "1.0.0",
+  "install": [
+    "RunMigrations",
+    "SeedDefaultData",
+    "RegisterPermissions",
+    "RegisterSignals",
+    "SeedDefaultTemplates"
+  ],
+  "post_install": [
+    "VerifyDatabaseTables",
+    "VerifyPermissionsRegistered"
+  ],
+  "upgrade": {},
+  "rollback": []
+}

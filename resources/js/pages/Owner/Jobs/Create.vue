@@ -2,18 +2,16 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import JobForm from './partials/JobForm.vue';
+import type { Customer, JobType, UserRef, Property } from '@/types';
 
-interface Customer {
-    id: number; first_name: string; last_name: string;
-    properties: { id: number; address_line1: string; city: string; state: string }[];
-}
-interface JobType    { id: number; name: string; color: string }
-interface Technician { id: number; name: string }
+// JobForm expects properties to always be present and color to be non-null
+type CustomerWithProperties = Customer & { properties: Property[] };
+type JobTypeWithColor = JobType & { color: string };
 
 const props = defineProps<{
-    customers: Customer[];
-    jobTypes: JobType[];
-    technicians: Technician[];
+    customers: CustomerWithProperties[];
+    jobTypes: JobTypeWithColor[];
+    technicians: UserRef[];
     preselect: { customer_id?: string | number; property_id?: string | number };
 }>();
 

@@ -2,21 +2,9 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import type { OrganizationSetting } from '@/types';
 
-interface CompanySettings {
-    company_name: string | null;
-    company_email: string | null;
-    company_phone: string | null;
-    company_address: string | null;
-    company_city: string | null;
-    company_state: string | null;
-    company_zip: string | null;
-    company_website: string | null;
-    logo_path: string | null;
-    default_tax_rate: string | null;
-}
-
-const props = defineProps<{ settings: CompanySettings }>();
+const props = defineProps<{ settings: OrganizationSetting }>();
 
 const form = ref({
     company_name:     props.settings.company_name ?? '',

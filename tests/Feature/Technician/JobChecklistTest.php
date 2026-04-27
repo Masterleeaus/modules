@@ -98,7 +98,7 @@ test('api show response includes checklist items', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson("/api/technician/jobs/{$job->id}")
+        ->getJson("/api/v1/technician/jobs/{$job->id}")
         ->assertOk()
         ->assertJsonCount(3, 'data.checklist_items');
 });
@@ -118,9 +118,9 @@ test('technician can mark a checklist item complete', function () {
     $item = $job->checklistItems()->first();
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/checklist/{$item->id}", ['completed' => true])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/checklist/{$item->id}", ['completed' => true])
         ->assertOk()
-        ->assertJsonPath('status', 'ok');
+        ->assertJsonPath('success', true);
 
     expect($item->fresh()->completed_at)->not->toBeNull();
 });
@@ -139,7 +139,7 @@ test('technician can mark a checklist item incomplete', function () {
     $item->update(['completed_at' => now()]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/checklist/{$item->id}", ['completed' => false])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/checklist/{$item->id}", ['completed' => false])
         ->assertOk();
 
     expect($item->fresh()->completed_at)->toBeNull();
@@ -159,7 +159,7 @@ test('technician cannot toggle a checklist item on another technician\'s job', f
     $item = $job->checklistItems()->first();
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/checklist/{$item->id}", ['completed' => true])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/checklist/{$item->id}", ['completed' => true])
         ->assertForbidden();
 });
 
@@ -182,7 +182,7 @@ test('toggle returns 404 when item does not belong to the job', function () {
     $itemFromB = $jobB->checklistItems()->first();
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$jobA->id}/checklist/{$itemFromB->id}", ['completed' => true])
+        ->patchJson("/api/v1/technician/jobs/{$jobA->id}/checklist/{$itemFromB->id}", ['completed' => true])
         ->assertNotFound();
 });
 
@@ -199,6 +199,6 @@ test('toggle rejects a missing completed flag', function () {
     $item = $job->checklistItems()->first();
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/checklist/{$item->id}", [])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/checklist/{$item->id}", [])
         ->assertUnprocessable();
 });

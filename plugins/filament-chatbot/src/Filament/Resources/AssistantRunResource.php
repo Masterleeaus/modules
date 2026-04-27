@@ -16,11 +16,11 @@ class AssistantRunResource extends Resource
 {
     protected static ?string $model = AssistantRun::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-cpu-chip';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cpu-chip';
 
     protected static ?string $navigationLabel = 'AI Runs';
 
-    protected static ?string $navigationGroup = 'Assistant';
+    protected static string|\UnitEnum|null $navigationGroup = 'Assistant';
 
     protected static ?int $navigationSort = 10;
 

@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Owner;
 
-use App\Events\EstimateSent;
+use App\Actions\Estimates\ConvertEstimateToJobAction;
+use App\Actions\Estimates\SendEstimateAction;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Estimate;
@@ -205,12 +206,7 @@ class EstimateController extends Controller
     {
         abort_unless($estimate->organization_id === $request->user()->organization_id, 403);
 
-        $estimate->update([
-            'status'  => Estimate::STATUS_SENT,
-            'sent_at' => now(),
-        ]);
-
-        EstimateSent::dispatch($estimate);
+        app(SendEstimateAction::class)->execute($estimate);
 
         return redirect()->route('owner.estimates.show', $estimate)
             ->with('success', 'Estimate sent.');
@@ -224,34 +220,7 @@ class EstimateController extends Controller
         abort_unless($estimate->status === Estimate::STATUS_ACCEPTED, 422);
         abort_unless($estimate->convertedJob === null, 422);
 
-        $estimate->load('packages.lineItems');
-
-        $package = $estimate->packages
-            ->firstWhere('tier', $estimate->accepted_package)
-            ?? $estimate->packages->first();
-
-        abort_if($package === null, 422);
-
-        $job = Job::create([
-            'organization_id' => $estimate->organization_id,
-            'customer_id'     => $estimate->customer_id,
-            'estimate_id'     => $estimate->id,
-            'title'           => $estimate->title,
-            'description'     => $package->description,
-            'status'          => Job::STATUS_SCHEDULED,
-            'office_notes'    => $estimate->footer,
-        ]);
-
-        foreach ($package->lineItems as $idx => $li) {
-            $job->lineItems()->create([
-                'item_id'    => $li->item_id,
-                'name'       => $li->name,
-                'description'=> $li->description,
-                'unit_price' => $li->unit_price,
-                'quantity'   => $li->quantity,
-                'sort_order' => $idx,
-            ]);
-        }
+        $job = app(ConvertEstimateToJobAction::class)->execute($estimate);
 
         return redirect()->route('owner.jobs.show', $job)
             ->with('success', 'Job created from estimate.');

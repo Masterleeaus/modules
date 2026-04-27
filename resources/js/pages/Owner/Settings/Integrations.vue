@@ -2,20 +2,9 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import type { OrganizationSetting } from '@/types';
 
-interface IntegrationSettings {
-    stripe_secret_key: string | null;
-    stripe_publishable_key: string | null;
-    stripe_webhook_secret: string | null;
-    twilio_account_sid: string | null;
-    twilio_auth_token: string | null;
-    twilio_from_number: string | null;
-    sendgrid_api_key: string | null;
-    sendgrid_from_email: string | null;
-    google_maps_api_key: string | null;
-}
-
-const props = defineProps<{ settings: IntegrationSettings }>();
+const props = defineProps<{ settings: OrganizationSetting }>();
 
 const form = ref({ ...props.settings });
 const saving = ref(false);

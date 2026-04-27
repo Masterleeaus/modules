@@ -1,0 +1,14 @@
+{
+  "module_id": "Accountings",
+  "version": "1.0.1",
+  "install": [
+    "RunMigrations",
+    "SeedDefaultData",
+    "SeedDefaultTemplates"
+  ],
+  "post_install": [
+    "VerifyDatabaseTables"
+  ],
+  "upgrade": {},
+  "rollback": []
+}

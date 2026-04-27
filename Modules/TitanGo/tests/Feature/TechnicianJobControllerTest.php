@@ -31,13 +31,13 @@ test('technician can fetch today jobs via api', function () {
     [$tech, $job] = technicianWithJob();
 
     $this->actingAs($tech)
-        ->getJson('/api/technician/jobs/today')
+        ->getJson('/api/v1/technician/jobs/today')
         ->assertOk()
         ->assertJsonPath('data.0.id', $job->id);
 });
 
 test('guest cannot fetch today jobs', function () {
-    $this->getJson('/api/technician/jobs/today')
+    $this->getJson('/api/v1/technician/jobs/today')
         ->assertUnauthorized();
 });
 
@@ -47,9 +47,9 @@ test('technician can update job status to in_progress', function () {
     [$tech, $job] = technicianWithJob();
 
     $this->actingAs($tech)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'in_progress'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'in_progress'])
         ->assertOk()
-        ->assertJsonPath('status', 'ok')
+        ->assertJsonPath('success', true)
         ->assertJsonPath('data.status', 'in_progress');
 
     expect($job->fresh()->status)->toBe('in_progress');
@@ -62,7 +62,7 @@ test('technician cannot update another technicians job', function () {
     $job  = Job::factory()->create(['organization_id' => $org->id, 'assigned_to' => $other->id]);
 
     $this->actingAs($tech)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'in_progress'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'in_progress'])
         ->assertForbidden();
 });
 
@@ -70,7 +70,7 @@ test('technician cannot set status to cancelled', function () {
     [$tech, $job] = technicianWithJob();
 
     $this->actingAs($tech)
-        ->patchJson("/api/technician/jobs/{$job->id}/status", ['status' => 'cancelled'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'cancelled'])
         ->assertUnprocessable();
 });
 
@@ -80,7 +80,7 @@ test('technician can update technician notes', function () {
     [$tech, $job] = technicianWithJob();
 
     $this->actingAs($tech)
-        ->patchJson("/api/technician/jobs/{$job->id}/notes", ['technician_notes' => 'Brought extra parts.'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/notes", ['technician_notes' => 'Brought extra parts.'])
         ->assertOk();
 
     expect($job->fresh()->technician_notes)->toBe('Brought extra parts.');
@@ -100,7 +100,7 @@ test('technician can toggle checklist item completed', function () {
     ]);
 
     $this->actingAs($tech)
-        ->patchJson("/api/technician/jobs/{$job->id}/checklist/{$item->id}", ['completed' => true])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/checklist/{$item->id}", ['completed' => true])
         ->assertOk();
 
     expect($item->fresh()->completed_at)->not->toBeNull();
@@ -112,7 +112,7 @@ test('technician can add a line item', function () {
     [$tech, $job] = technicianWithJob();
 
     $this->actingAs($tech)
-        ->postJson("/api/technician/jobs/{$job->id}/line-items", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/line-items", [
             'name'       => 'Filter replacement',
             'unit_price' => 25.00,
             'quantity'   => 2,
@@ -127,7 +127,7 @@ test('technician can delete a line item', function () {
     $li = JobLineItem::factory()->create(['job_id' => $job->id]);
 
     $this->actingAs($tech)
-        ->deleteJson("/api/technician/jobs/{$job->id}/line-items/{$li->id}")
+        ->deleteJson("/api/v1/technician/jobs/{$job->id}/line-items/{$li->id}")
         ->assertOk();
 
     expect(JobLineItem::find($li->id))->toBeNull();
@@ -139,7 +139,7 @@ test('technician can search catalog', function () {
     [$tech] = technicianWithJob();
 
     $this->actingAs($tech)
-        ->getJson('/api/technician/catalog')
+        ->getJson('/api/v1/technician/catalog')
         ->assertOk()
         ->assertJsonStructure(['data']);
 });

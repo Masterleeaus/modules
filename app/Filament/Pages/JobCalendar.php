@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Services\JobCalendarService;
 use Filament\Pages\Page;
 
 class JobCalendar extends Page
@@ -15,4 +16,16 @@ class JobCalendar extends Page
     protected static ?int $navigationSort = 5;
 
     protected string $view = 'filament.pages.job-calendar';
+
+    /**
+     * Provide calendar events to the view via JobCalendarService.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getViewData(): array
+    {
+        return [
+            'calendarServiceClass' => JobCalendarService::class,
+        ];
+    }
 }
