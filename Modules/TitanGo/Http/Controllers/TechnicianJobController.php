@@ -4,6 +4,7 @@ namespace Modules\TitanGo\Http\Controllers;
 
 use App\Events\JobStatusChanged;
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use App\Models\Item;
 use App\Models\Job;
 use App\Models\JobChecklistItem;
@@ -77,7 +78,7 @@ class TechnicianJobController extends Controller
             ->orderBy('scheduled_at')
             ->get();
 
-        return response()->json(['data' => $jobs]);
+        return ApiResponse::success($jobs);
     }
 
     public function apiShow(Request $request, Job $job): JsonResponse
@@ -86,7 +87,7 @@ class TechnicianJobController extends Controller
 
         $job->load(['customer', 'property', 'jobType', 'checklistItems', 'attachments', 'lineItems']);
 
-        return response()->json(['data' => $job]);
+        return ApiResponse::success($job);
     }
 
     public function updateStatus(Request $request, Job $job): JsonResponse
@@ -116,7 +117,7 @@ class TechnicianJobController extends Controller
 
         JobStatusChanged::dispatch($job->fresh(), $oldStatus, $request->status);
 
-        return response()->json(['status' => 'ok', 'data' => $job->fresh()]);
+        return ApiResponse::success($job->fresh());
     }
 
     public function updateNotes(Request $request, Job $job): JsonResponse
@@ -129,7 +130,7 @@ class TechnicianJobController extends Controller
 
         $job->update(['technician_notes' => $request->technician_notes]);
 
-        return response()->json(['status' => 'ok', 'data' => $job->fresh()]);
+        return ApiResponse::success($job->fresh());
     }
 
     public function updateCustomerNotes(Request $request, Job $job): JsonResponse
@@ -142,7 +143,7 @@ class TechnicianJobController extends Controller
 
         $job->update(['customer_notes' => $request->customer_notes]);
 
-        return response()->json(['status' => 'ok', 'data' => $job->fresh()]);
+        return ApiResponse::success($job->fresh());
     }
 
     public function toggleChecklistItem(Request $request, Job $job, JobChecklistItem $item): JsonResponse
@@ -158,7 +159,7 @@ class TechnicianJobController extends Controller
             'completed_at' => $request->boolean('completed') ? now() : null,
         ]);
 
-        return response()->json(['status' => 'ok', 'data' => $item->fresh()]);
+        return ApiResponse::success($item->fresh());
     }
 
     public function addLineItem(Request $request, Job $job): JsonResponse
@@ -183,7 +184,7 @@ class TechnicianJobController extends Controller
 
         $lineItem = $job->lineItems()->create($data);
 
-        return response()->json(['status' => 'ok', 'data' => $lineItem->fresh()], 201);
+        return ApiResponse::success($lineItem->fresh(), [], 201);
     }
 
     public function updateLineItem(Request $request, Job $job, JobLineItem $lineItem): JsonResponse
@@ -199,7 +200,7 @@ class TechnicianJobController extends Controller
 
         $lineItem->update($data);
 
-        return response()->json(['status' => 'ok', 'data' => $lineItem->fresh()]);
+        return ApiResponse::success($lineItem->fresh());
     }
 
     public function deleteLineItem(Request $request, Job $job, JobLineItem $lineItem): JsonResponse
@@ -209,7 +210,7 @@ class TechnicianJobController extends Controller
 
         $lineItem->delete();
 
-        return response()->json(['status' => 'ok']);
+        return ApiResponse::success(null);
     }
 
     public function catalogItems(Request $request): JsonResponse
@@ -229,7 +230,7 @@ class TechnicianJobController extends Controller
             });
         }
 
-        return response()->json(['data' => $query->limit(20)->get()]);
+        return ApiResponse::success($query->limit(20)->get());
     }
 
     // -------------------------------------------------------------------------

@@ -4,6 +4,7 @@ namespace Modules\TitanGo\Http\Controllers;
 
 use App\Events\TechnicianLocationUpdated;
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use App\Models\DriverLocation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -31,6 +32,6 @@ class TechnicianLocationController extends Controller
 
         TechnicianLocationUpdated::dispatch($location);
 
-        return response()->json(['data' => $location], 201);
+        return ApiResponse::success($location, [], 201);
     }
 }

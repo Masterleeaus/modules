@@ -31,13 +31,13 @@ test('technician can add a free-text line item', function () {
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/line-items", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/line-items", [
             'name'       => 'Labour',
             'unit_price' => 95.00,
             'quantity'   => 2,
         ])
         ->assertCreated()
-        ->assertJsonPath('status', 'ok')
+        ->assertJsonPath('success', true)
         ->assertJsonPath('data.name', 'Labour')
         ->assertJsonPath('data.unit_price', '95.00')
         ->assertJsonPath('data.quantity', '2.000');
@@ -60,7 +60,7 @@ test('technician can add a catalog line item and price is snapshotted', function
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/line-items", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/line-items", [
             'item_id'    => $item->id,
             'name'       => $item->name,
             'unit_price' => 45.00,
@@ -79,8 +79,8 @@ test('sort_order increments for each new line item', function () {
         'scheduled_at' => now(),
     ]);
 
-    $this->actingAs($technician)->postJson("/api/technician/jobs/{$job->id}/line-items", ['name' => 'A', 'unit_price' => 10, 'quantity' => 1]);
-    $this->actingAs($technician)->postJson("/api/technician/jobs/{$job->id}/line-items", ['name' => 'B', 'unit_price' => 20, 'quantity' => 1]);
+    $this->actingAs($technician)->postJson("/api/v1/technician/jobs/{$job->id}/line-items", ['name' => 'A', 'unit_price' => 10, 'quantity' => 1]);
+    $this->actingAs($technician)->postJson("/api/v1/technician/jobs/{$job->id}/line-items", ['name' => 'B', 'unit_price' => 20, 'quantity' => 1]);
 
     $orders = $job->lineItems()->orderBy('sort_order')->pluck('sort_order')->toArray();
     expect($orders)->toBe([1, 2]);
@@ -95,7 +95,7 @@ test('add line item rejects missing required fields', function () {
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/line-items", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/line-items", [
             'unit_price' => 10,
             'quantity'   => 1,
             // missing name
@@ -112,7 +112,7 @@ test('add line item rejects zero quantity', function () {
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/line-items", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/line-items", [
             'name'       => 'X',
             'unit_price' => 10,
             'quantity'   => 0,
@@ -130,7 +130,7 @@ test('technician cannot add a line item to another technician\'s job', function 
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/line-items", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/line-items", [
             'name'       => 'X',
             'unit_price' => 10,
             'quantity'   => 1,
@@ -156,7 +156,7 @@ test('technician can update a line item qty and price', function () {
     ]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/line-items/{$item->id}", [
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/line-items/{$item->id}", [
             'quantity'   => 3,
             'unit_price' => 55.00,
         ])
@@ -176,7 +176,7 @@ test('technician can update the name of a line item', function () {
     $item = $job->lineItems()->create(['name' => 'Old', 'unit_price' => 10, 'quantity' => 1, 'sort_order' => 1]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/line-items/{$item->id}", ['name' => 'New'])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/line-items/{$item->id}", ['name' => 'New'])
         ->assertOk()
         ->assertJsonPath('data.name', 'New');
 });
@@ -190,7 +190,7 @@ test('update returns 404 when line item does not belong to the job', function ()
     $itemFromB = $jobB->lineItems()->create(['name' => 'X', 'unit_price' => 10, 'quantity' => 1, 'sort_order' => 1]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$jobA->id}/line-items/{$itemFromB->id}", ['quantity' => 2])
+        ->patchJson("/api/v1/technician/jobs/{$jobA->id}/line-items/{$itemFromB->id}", ['quantity' => 2])
         ->assertNotFound();
 });
 
@@ -202,7 +202,7 @@ test('technician cannot update a line item on another technician\'s job', functi
     $item  = $job->lineItems()->create(['name' => 'X', 'unit_price' => 10, 'quantity' => 1, 'sort_order' => 1]);
 
     $this->actingAs($technician)
-        ->patchJson("/api/technician/jobs/{$job->id}/line-items/{$item->id}", ['quantity' => 2])
+        ->patchJson("/api/v1/technician/jobs/{$job->id}/line-items/{$item->id}", ['quantity' => 2])
         ->assertForbidden();
 });
 
@@ -215,9 +215,9 @@ test('technician can delete a line item', function () {
     $item = $job->lineItems()->create(['name' => 'X', 'unit_price' => 10, 'quantity' => 1, 'sort_order' => 1]);
 
     $this->actingAs($technician)
-        ->deleteJson("/api/technician/jobs/{$job->id}/line-items/{$item->id}")
+        ->deleteJson("/api/v1/technician/jobs/{$job->id}/line-items/{$item->id}")
         ->assertOk()
-        ->assertJsonPath('status', 'ok');
+        ->assertJsonPath('success', true);
 
     expect($job->lineItems()->count())->toBe(0);
 });
@@ -230,7 +230,7 @@ test('technician cannot delete a line item from another technician\'s job', func
     $item  = $job->lineItems()->create(['name' => 'X', 'unit_price' => 10, 'quantity' => 1, 'sort_order' => 1]);
 
     $this->actingAs($technician)
-        ->deleteJson("/api/technician/jobs/{$job->id}/line-items/{$item->id}")
+        ->deleteJson("/api/v1/technician/jobs/{$job->id}/line-items/{$item->id}")
         ->assertForbidden();
 });
 
@@ -242,7 +242,7 @@ test('delete returns 404 when item does not belong to the job', function () {
     $itemB   = $jobB->lineItems()->create(['name' => 'X', 'unit_price' => 10, 'quantity' => 1, 'sort_order' => 1]);
 
     $this->actingAs($technician)
-        ->deleteJson("/api/technician/jobs/{$jobA->id}/line-items/{$itemB->id}")
+        ->deleteJson("/api/v1/technician/jobs/{$jobA->id}/line-items/{$itemB->id}")
         ->assertNotFound();
 });
 
@@ -255,7 +255,7 @@ test('catalog returns active items for the technician\'s org', function () {
     Item::factory()->create(['organization_id' => $org->id, 'is_active' => false]); // inactive — excluded
 
     $this->actingAs($technician)
-        ->getJson('/api/technician/catalog')
+        ->getJson('/api/v1/technician/catalog')
         ->assertOk()
         ->assertJsonCount(3, 'data');
 });
@@ -267,7 +267,7 @@ test('catalog search filters by name', function () {
     Item::factory()->create(['organization_id' => $org->id, 'name' => 'Pump Repair', 'is_active' => true]);
 
     $this->actingAs($technician)
-        ->getJson('/api/technician/catalog?q=filter')
+        ->getJson('/api/v1/technician/catalog?q=filter')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.name', 'Filter Replacement');
@@ -281,7 +281,7 @@ test('catalog does not leak items from other organizations', function () {
     Item::factory()->create(['organization_id' => $org->id, 'is_active' => true]);
 
     $this->actingAs($technician)
-        ->getJson('/api/technician/catalog')
+        ->getJson('/api/v1/technician/catalog')
         ->assertOk()
         ->assertJsonCount(1, 'data');
 });
@@ -298,7 +298,7 @@ test('api show response includes line items', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson("/api/technician/jobs/{$job->id}")
+        ->getJson("/api/v1/technician/jobs/{$job->id}")
         ->assertOk()
         ->assertJsonCount(2, 'data.line_items');
 });

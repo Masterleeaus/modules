@@ -3,6 +3,7 @@
 namespace Modules\TitanGo\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use App\Models\Attachment;
 use App\Models\Job;
 use Illuminate\Http\JsonResponse;
@@ -41,7 +42,7 @@ class TechnicianMediaController extends Controller
             'meta'            => $request->filled('area') ? ['area' => $request->input('area')] : null,
         ]);
 
-        return response()->json(['status' => 'ok', 'data' => $attachment], 201);
+        return ApiResponse::success($attachment, [], 201);
     }
 
     /**
@@ -55,7 +56,7 @@ class TechnicianMediaController extends Controller
         Storage::disk($attachment->disk)->delete($attachment->path);
         $attachment->delete();
 
-        return response()->json(['status' => 'ok']);
+        return ApiResponse::success(null);
     }
 
     /**
@@ -85,7 +86,7 @@ class TechnicianMediaController extends Controller
 
         $decoded = base64_decode($base64, strict: true);
         if ($decoded === false) {
-            return response()->json(['status' => 'error', 'message' => 'Invalid base64 data.'], 422);
+            return ApiResponse::error('INVALID_BASE64', 'Invalid base64 data.', 422);
         }
 
         $disk     = config('filesystems.attachment_disk', 'public');
@@ -105,6 +106,6 @@ class TechnicianMediaController extends Controller
             'tag'             => 'client_signature',
         ]);
 
-        return response()->json(['status' => 'ok', 'data' => $attachment], 201);
+        return ApiResponse::success($attachment, [], 201);
     }
 }
