@@ -17,6 +17,23 @@ class PlatformSetting extends Model
 
     protected $casts = ['enable_registration' => 'boolean'];
 
+    public static function defaults(): array
+    {
+        return [
+            'app_name'             => 'TITAN ZERO',
+            'logo_path'            => 'platform/titan-zero-logo.png',
+            'logo'                 => 'platform/titan-zero-logo.png',
+            'primary_color'        => '#2563eb',
+            'secondary_color'      => '#0f172a',
+            'accent_color'         => '#14b8a6',
+            'support_email'        => 'support@titanzero.pro',
+            'footer_text'          => 'Powered by Titan Zero.',
+            'meta_title'           => 'TITAN ZERO',
+            'meta_description'     => 'Titan Zero field operations platform.',
+            'enable_registration'  => true,
+        ];
+    }
+
     public static function current(): self
     {
         $settings = static::query()->firstOrCreate([], [

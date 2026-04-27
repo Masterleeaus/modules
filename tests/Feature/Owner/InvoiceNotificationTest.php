@@ -12,7 +12,7 @@ use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 
-function makeFakeSms(array &$sent): SmsService
+function makeInvoiceFakeSms(array &$sent): SmsService
 {
     return new class($sent) implements SmsService {
         public function __construct(private array &$sent) {}
@@ -56,7 +56,7 @@ test('SendInvoiceNotification queues email to customer', function () {
     $invoice  = Invoice::factory()->forCustomer($customer)->sent()->create(['balance_due' => 200]);
 
     $sent     = [];
-    $listener = new SendInvoiceNotification(makeFakeSms($sent));
+    $listener = new SendInvoiceNotification(makeInvoiceFakeSms($sent));
     $listener->handle(new InvoiceSent($invoice));
 
     Mail::assertQueued(InvoiceMail::class, fn ($mail) => $mail->invoice->id === $invoice->id);
@@ -70,7 +70,7 @@ test('SendInvoiceNotification skips email when customer has no email', function 
     $invoice  = Invoice::factory()->forCustomer($customer)->sent()->create();
 
     $sent     = [];
-    $listener = new SendInvoiceNotification(makeFakeSms($sent));
+    $listener = new SendInvoiceNotification(makeInvoiceFakeSms($sent));
     $listener->handle(new InvoiceSent($invoice));
 
     Mail::assertNothingQueued();
@@ -92,7 +92,7 @@ test('SendInvoiceNotification sends SMS to customer mobile', function () {
     ]);
 
     $sent     = [];
-    $listener = new SendInvoiceNotification(makeFakeSms($sent));
+    $listener = new SendInvoiceNotification(makeInvoiceFakeSms($sent));
     $listener->handle(new InvoiceSent($invoice));
 
     expect($sent)->toHaveCount(1);
@@ -112,7 +112,7 @@ test('SendInvoiceNotification falls back to phone when mobile is null', function
     $invoice = Invoice::factory()->forCustomer($customer)->sent()->create();
 
     $sent     = [];
-    $listener = new SendInvoiceNotification(makeFakeSms($sent));
+    $listener = new SendInvoiceNotification(makeInvoiceFakeSms($sent));
     $listener->handle(new InvoiceSent($invoice));
 
     expect($sent)->toHaveCount(1);
@@ -131,7 +131,7 @@ test('SendInvoiceNotification skips SMS when customer has no phone', function ()
     $invoice = Invoice::factory()->forCustomer($customer)->sent()->create();
 
     $sent     = [];
-    $listener = new SendInvoiceNotification(makeFakeSms($sent));
+    $listener = new SendInvoiceNotification(makeInvoiceFakeSms($sent));
     $listener->handle(new InvoiceSent($invoice));
 
     expect($sent)->toBeEmpty();
@@ -140,6 +140,6 @@ test('SendInvoiceNotification skips SMS when customer has no phone', function ()
 test('SendInvoiceNotification listener is queued', function () {
     $sent = [];
 
-    expect(new SendInvoiceNotification(makeFakeSms($sent)))
+    expect(new SendInvoiceNotification(makeInvoiceFakeSms($sent)))
         ->toBeInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class);
 });
