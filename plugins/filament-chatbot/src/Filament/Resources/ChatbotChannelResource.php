@@ -13,11 +13,11 @@ class ChatbotChannelResource extends Resource
 {
     protected static ?string $model = ChatbotChannel::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-square-3-stack-3d';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-square-3-stack-3d';
 
     protected static ?string $navigationLabel = 'Channels';
 
-    protected static ?string $navigationGroup = 'Chatbot';
+    protected static string|\UnitEnum|null $navigationGroup = 'Chatbot';
 
     protected static ?int $navigationSort = 3;
 

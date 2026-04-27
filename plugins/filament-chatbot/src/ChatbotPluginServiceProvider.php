@@ -37,7 +37,7 @@ class ChatbotPluginServiceProvider extends PackageServiceProvider
                 '2026_04_27_000001_create_assistant_threads_table',
                 '2026_04_27_000002_create_assistant_runs_table',
             ])
-            ->publishesAssets();
+            ->hasAssets();
     }
 
     public function packageRegistered(): void

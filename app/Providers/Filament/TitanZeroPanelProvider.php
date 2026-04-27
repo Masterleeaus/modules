@@ -18,7 +18,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use TitanZero\FilamentChatbot\Filament\ChatbotPlugin;
-
 /**
  * TITAN ZERO — Vertical-Specific AI Training PWA
  *
@@ -64,7 +63,10 @@ class TitanZeroPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
-            ->plugin(ChatbotPlugin::make())
+            ->when(
+                class_exists(\TitanZero\FilamentChatbot\Filament\ChatbotPlugin::class),
+                fn ($panel) => $panel->plugin(\TitanZero\FilamentChatbot\Filament\ChatbotPlugin::make())
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
