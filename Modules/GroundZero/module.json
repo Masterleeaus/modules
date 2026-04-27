@@ -1,11 +1,11 @@
 {
     "name": "GroundZero",
     "alias": "groundzero",
-    "description": "",
-    "keywords": [],
+    "description": "GroundZero — real-time dispatch board, route optimisation, geofencing, and live technician tracking.",
+    "keywords": ["dispatch", "routing", "geofencing", "real-time", "tracking"],
     "priority": 0,
     "providers": [
-        
+        "Modules\\GroundZero\\Providers\\GroundZeroServiceProvider"
     ],
     "files": []
 }

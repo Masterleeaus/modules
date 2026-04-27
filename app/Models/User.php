@@ -51,6 +51,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Job::class, 'assigned_to');
     }
 
+    public function driverLocations(): HasMany
+    {
+        return $this->hasMany(DriverLocation::class);
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->hasRole(['super_admin', 'admin', 'owner']);

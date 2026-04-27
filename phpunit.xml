@@ -11,6 +11,10 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <testsuite name="Modules">
+            <directory>Modules/ZeroPay/Tests</directory>
+            <directory>Modules/GroundZero/Tests</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>

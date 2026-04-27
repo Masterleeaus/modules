@@ -1,0 +1,50 @@
+{
+    "module": "ground_zero",
+    "tools": [
+        {
+            "key": "ground_zero.dispatch.suggest_technician",
+            "label": "AI Dispatch: Suggest best technician for a job",
+            "description": "Analyses current technician locations, remaining schedules, and job type expertise to recommend the optimal technician assignment for a new job. Returns a ranked list with reasoning.",
+            "risk": "low",
+            "requires": ["job_id"],
+            "handler": "ground_zero.dispatch.suggest_technician",
+            "voice_phrases": [
+                "who should I send",
+                "suggest a technician",
+                "who is closest",
+                "best tech for this job",
+                "AI recommend"
+            ],
+            "output_schema": {
+                "recommendations": [
+                    {
+                        "technician_id": "integer",
+                        "technician_name": "string",
+                        "eta_minutes": "integer|null",
+                        "scheduled_today": "integer",
+                        "reason": "string"
+                    }
+                ]
+            }
+        },
+        {
+            "key": "ground_zero.route.optimise",
+            "label": "AI Route: Optimise technician's job order",
+            "description": "Returns the optimal visit order for all of a technician's scheduled jobs today, minimising total travel time using the Google Maps Distance Matrix API.",
+            "risk": "low",
+            "requires": ["technician_id"],
+            "handler": "ground_zero.route.optimise",
+            "voice_phrases": [
+                "optimise route",
+                "best route",
+                "shortest route",
+                "order my jobs"
+            ],
+            "output_schema": {
+                "ordered_job_ids": ["integer"],
+                "total_distance_metres": "integer",
+                "total_duration_seconds": "integer"
+            }
+        }
+    ]
+}

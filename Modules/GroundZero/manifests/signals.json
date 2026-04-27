@@ -1,0 +1,29 @@
+{
+    "module": "ground_zero",
+    "signals": [
+        {
+            "event": "Modules\\GroundZero\\Events\\JobDispatched",
+            "description": "Fired when a job is assigned or reassigned to a technician via the dispatch board.",
+            "channel": "dispatch.{organization_id}",
+            "broadcast_as": "job.dispatched"
+        },
+        {
+            "event": "Modules\\GroundZero\\Events\\TechnicianArrived",
+            "description": "Fired by the geofence service when a technician enters the 200 m job-site radius.",
+            "channel": "dispatch.{organization_id}",
+            "broadcast_as": "technician.arrived"
+        },
+        {
+            "event": "Modules\\GroundZero\\Events\\TechnicianLeft",
+            "description": "Fired by the geofence service when a technician leaves the 200 m job-site radius.",
+            "channel": "dispatch.{organization_id}",
+            "broadcast_as": "technician.left"
+        },
+        {
+            "event": "Modules\\GroundZero\\Events\\DispatchBoardUpdated",
+            "description": "Generic board-refresh signal broadcast to all dispatch-board listeners for an organisation.",
+            "channel": "dispatch.{organization_id}",
+            "broadcast_as": "board.updated"
+        }
+    ]
+}

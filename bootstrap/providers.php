@@ -13,6 +13,7 @@ return [
     App\Providers\Filament\TitanStudioPanelProvider::class,
     App\Providers\Filament\TitanSoloPanelProvider::class,
     App\Providers\FortifyServiceProvider::class,
+    Modules\GroundZero\Providers\GroundZeroServiceProvider::class,
     // Only registered when Telescope is installed (dev environments only)
     ...(class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class)
         ? [App\Providers\TelescopeServiceProvider::class]
