@@ -1,11 +1,11 @@
 {
     "name": "TitanGo",
     "alias": "titango",
-    "description": "",
-    "keywords": [],
+    "description": "Field technician PWA — offline-first job management, media capture, GPS tracking, and customer signature capture.",
+    "keywords": ["pwa", "technician", "offline", "field"],
     "priority": 0,
     "providers": [
-        
+        "Modules\\TitanGo\\Providers\\TitanGoServiceProvider"
     ],
     "files": []
 }

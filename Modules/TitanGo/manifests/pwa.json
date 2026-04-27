@@ -1,0 +1,36 @@
+{
+    "module": "TitanGo",
+    "pwa": {
+        "name": "Titan Go",
+        "short_name": "TitanGo",
+        "description": "Field technician PWA for offline-first job management.",
+        "theme_color": "#0f172a",
+        "background_color": "#f8fafc",
+        "display": "standalone",
+        "orientation": "portrait",
+        "start_url": "/technician/dashboard",
+        "scope": "/technician/",
+        "icons": [
+            { "src": "/icons/titango-192.png", "sizes": "192x192", "type": "image/png" },
+            { "src": "/icons/titango-512.png", "sizes": "512x512", "type": "image/png" }
+        ]
+    },
+    "offline": {
+        "strategy": "offline_first",
+        "cached_routes": [
+            "/api/technician/jobs/today",
+            "/api/technician/catalog"
+        ],
+        "background_sync_queues": [
+            "job-writes-queue"
+        ],
+        "max_cache_age_seconds": 28800
+    },
+    "capabilities": {
+        "camera": true,
+        "geolocation": true,
+        "notifications": true,
+        "background_sync": true,
+        "signature_capture": true
+    }
+}
