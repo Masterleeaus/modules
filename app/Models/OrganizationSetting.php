@@ -25,6 +25,11 @@ class OrganizationSetting extends Model
         'company_website',
         'logo_path',
         'default_tax_rate',
+        'brand_color',
+        'customer_facing_name',
+        // Setup wizard progress
+        'setup_completed_steps',
+        'setup_complete',
         // Integrations
         'stripe_secret_key',
         'stripe_publishable_key',
@@ -48,12 +53,14 @@ class OrganizationSetting extends Model
     protected function casts(): array
     {
         return [
-            'default_tax_rate'     => 'decimal:4',
-            'stripe_secret_key'    => 'encrypted',
+            'default_tax_rate'      => 'decimal:4',
+            'setup_completed_steps' => 'array',
+            'setup_complete'        => 'boolean',
+            'stripe_secret_key'     => 'encrypted',
             'stripe_webhook_secret' => 'encrypted',
-            'twilio_auth_token'    => 'encrypted',
-            'sendgrid_api_key'     => 'encrypted',
-            'google_maps_api_key'  => 'encrypted',
+            'twilio_auth_token'     => 'encrypted',
+            'sendgrid_api_key'      => 'encrypted',
+            'google_maps_api_key'   => 'encrypted',
         ];
     }
 

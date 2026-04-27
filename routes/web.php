@@ -85,11 +85,14 @@ Route::middleware(['auth', 'verified', 'role:owner|admin'])
         Route::post('/setup/job-types', [SetupController::class, 'addJobType'])->name('setup.job_types.store');
         Route::delete('/setup/job-types/{jobType}', [SetupController::class, 'removeJobType'])->name('setup.job_types.destroy');
         Route::post('/setup/technicians', [SetupController::class, 'addTechnician'])->name('setup.technicians.store');
+        Route::post('/setup/templates', [SetupController::class, 'saveNotificationTemplates'])->name('setup.templates.store');
+        Route::post('/setup/branding', [SetupController::class, 'saveBranding'])->name('setup.branding.store');
+        Route::post('/setup/payment', [SetupController::class, 'markPaymentComplete'])->name('setup.payment.store');
+        Route::post('/setup/skip', [SetupController::class, 'skipStep'])->name('setup.skip');
         Route::post('/setup/complete', [SetupController::class, 'complete'])->name('setup.complete');
     });
 
-// ── Team management — owner/admin only, subscription-gated ───────────────────
-Route::middleware(['auth', 'verified', 'role:owner|admin', 'subscription'])
+Route::middleware(['auth', 'verified', 'role:owner|admin', 'subscription', 'setup.complete'])
     ->prefix('owner')
     ->name('owner.')
     ->group(function () {
@@ -99,7 +102,7 @@ Route::middleware(['auth', 'verified', 'role:owner|admin', 'subscription'])
         Route::delete('/team/{user}', [TeamController::class, 'destroy'])->name('team.destroy');
     });
 
-Route::middleware(['auth', 'verified', 'role:owner|admin|dispatcher|bookkeeper', 'subscription'])
+Route::middleware(['auth', 'verified', 'role:owner|admin|dispatcher|bookkeeper', 'subscription', 'setup.complete'])
     ->prefix('owner')
     ->name('owner.')
     ->group(function () {
