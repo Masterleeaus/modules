@@ -34,6 +34,7 @@ class Job extends Model
         'property_id',
         'job_type_id',
         'estimate_id',
+        'recurring_template_id',
         'assigned_to',
         'title',
         'description',
@@ -43,6 +44,8 @@ class Job extends Model
         'arrived_at',
         'completed_at',
         'cancelled_at',
+        'reminder_sent_24h_at',
+        'reminder_sent_2h_at',
         'technician_notes',
         'customer_notes',
         'office_notes',
@@ -51,11 +54,13 @@ class Job extends Model
     protected function casts(): array
     {
         return [
-            'scheduled_at' => 'datetime',
-            'started_at' => 'datetime',
-            'arrived_at' => 'datetime',
-            'completed_at' => 'datetime',
-            'cancelled_at' => 'datetime',
+            'scheduled_at'         => 'datetime',
+            'started_at'           => 'datetime',
+            'arrived_at'           => 'datetime',
+            'completed_at'         => 'datetime',
+            'cancelled_at'         => 'datetime',
+            'reminder_sent_24h_at' => 'datetime',
+            'reminder_sent_2h_at'  => 'datetime',
         ];
     }
 
@@ -134,6 +139,26 @@ class Job extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(JobMessage::class)->orderByDesc('created_at');
+    }
+
+    public function recurringTemplate(): BelongsTo
+    {
+        return $this->belongsTo(RecurringJobTemplate::class, 'recurring_template_id');
+    }
+
+    public function supplyUsages(): HasMany
+    {
+        return $this->hasMany(JobSupplyUsage::class);
+    }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(JobReview::class);
+    }
+
+    public function crew(): HasMany
+    {
+        return $this->hasMany(JobCrew::class);
     }
 
     public function isCompleted(): bool

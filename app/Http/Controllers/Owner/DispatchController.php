@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\DriverLocation;
 use App\Models\Job;
+use App\Models\JobCrew;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,13 +59,25 @@ class DispatchController extends Controller
             ->get(['user_id', 'latitude', 'longitude', 'heading', 'speed', 'recorded_at'])
             ->keyBy('user_id');
 
-        // Active (en-route / in-progress) jobs — one query
-        $activeJobs = Job::whereIn('assigned_to', $techIds)
+        // Active (en-route / in-progress) jobs — include crew members too
+        $crewJobIds = JobCrew::whereIn('user_id', $techIds)->pluck('job_id');
+
+        $activeJobs = Job::where(function ($q) use ($techIds, $crewJobIds) {
+                $q->whereIn('assigned_to', $techIds)
+                  ->orWhereIn('id', $crewJobIds);
+            })
             ->whereIn('status', [Job::STATUS_EN_ROUTE, Job::STATUS_IN_PROGRESS])
-            ->with(['customer:id,first_name,last_name', 'property:id,address_line1,city'])
+            ->with(['customer:id,first_name,last_name', 'property:id,address_line1,city', 'crew'])
             ->orderByDesc('scheduled_at')
             ->get()
-            ->groupBy('assigned_to')
+            ->groupBy(function ($job) use ($techIds) {
+                // Group by primary assignee if in our list, otherwise by crew member
+                if (in_array($job->assigned_to, $techIds->all())) {
+                    return $job->assigned_to;
+                }
+                $crewMember = $job->crew->whereIn('user_id', $techIds->all())->first();
+                return $crewMember?->user_id;
+            })
             ->map(fn ($jobs) => $jobs->first()); // latest per technician
 
         // Upcoming scheduled jobs today — one query, up to 3 per technician

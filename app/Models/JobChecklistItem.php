@@ -14,6 +14,7 @@ class JobChecklistItem extends Model
         'job_id',
         'job_type_checklist_item_id',
         'label',
+        'section',
         'sort_order',
         'is_required',
         'completed_at',

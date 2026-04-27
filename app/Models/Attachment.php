@@ -22,6 +22,7 @@ class Attachment extends Model
         'mime_type',
         'size',
         'tag',
+        'attachment_type',
     ];
 
     protected $appends = ['url'];
