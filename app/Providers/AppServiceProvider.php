@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Events\EstimateSent;
 use App\Events\InvoiceSent;
 use App\Events\JobCreated;
 use App\Events\JobStatusChanged;
+use App\Listeners\SendEstimateNotification;
 use App\Listeners\SendInvoiceNotification;
 use App\Listeners\SendJobConfirmationEmail;
 use App\Listeners\SendJobConfirmationSms;
@@ -39,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
+        Event::listen(EstimateSent::class, SendEstimateNotification::class);
         Event::listen(InvoiceSent::class, SendInvoiceNotification::class);
         Event::listen(JobCreated::class, SendJobConfirmationEmail::class);
         Event::listen(JobCreated::class, SendJobConfirmationSms::class);
