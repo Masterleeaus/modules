@@ -9,10 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Job extends Model
+class Job extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $table = 'field_jobs';
 
@@ -54,13 +56,13 @@ class Job extends Model
     protected function casts(): array
     {
         return [
-            'scheduled_at'         => 'datetime',
-            'started_at'           => 'datetime',
-            'arrived_at'           => 'datetime',
-            'completed_at'         => 'datetime',
-            'cancelled_at'         => 'datetime',
+            'scheduled_at' => 'datetime',
+            'started_at' => 'datetime',
+            'arrived_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
             'reminder_sent_24h_at' => 'datetime',
-            'reminder_sent_2h_at'  => 'datetime',
+            'reminder_sent_2h_at' => 'datetime',
         ];
     }
 
@@ -159,6 +161,13 @@ class Job extends Model
     public function crew(): HasMany
     {
         return $this->hasMany(JobCrew::class);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('job-photos');
+        $this->addMediaCollection('before-photos');
+        $this->addMediaCollection('after-photos');
     }
 
     public function isCompleted(): bool

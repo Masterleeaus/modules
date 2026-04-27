@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\JobStatsOverview;
+use App\Models\Job;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -17,8 +19,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Filament\Widgets\JobStatsOverview;
-use TitanZero\FilamentChatbot\Filament\ChatbotPlugin;
+use SolutionForest\FilamentHeaderSelect\Components\HeaderSelect;
+use SolutionForest\FilamentHeaderSelect\HeaderSelectPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -42,7 +44,16 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\AccountWidget::class,
                 JobStatsOverview::class,
             ])
-            ->plugin(ChatbotPlugin::make())
+            ->plugin(
+                HeaderSelectPlugin::make()
+                    ->selects([
+                        HeaderSelect::make('job_status')
+                            ->label('Job Status')
+                            ->options(Job::statuses())
+                            ->placeholder('Filter by status')
+                            ->icon('heroicon-o-funnel'),
+                    ])
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
