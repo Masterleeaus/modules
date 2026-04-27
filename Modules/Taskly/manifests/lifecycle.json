@@ -1,0 +1,13 @@
+{
+  "module_id": "Taskly",
+  "version": "3.6",
+  "install": [
+    "SeedDefaultData",
+    "SeedDefaultTemplates"
+  ],
+  "post_install": [
+    "VerifyDatabaseTables"
+  ],
+  "upgrade": {},
+  "rollback": []
+}

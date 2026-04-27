@@ -1,0 +1,17 @@
+{
+  "module_id": "CleanQuality",
+  "version": "2.0.0",
+  "install": [
+    "RunMigrations",
+    "SeedDefaultData",
+    "RegisterPermissions",
+    "RegisterSignals",
+    "SeedDefaultTemplates"
+  ],
+  "post_install": [
+    "VerifyDatabaseTables",
+    "VerifyPermissionsRegistered"
+  ],
+  "upgrade": {},
+  "rollback": []
+}

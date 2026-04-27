@@ -59,6 +59,9 @@ jobs:
       - name: Run migrate:fresh (detects duplicate table creation)
         run: php artisan migrate:fresh --force
 
+      - name: Verify all modules healthy post-migrate
+        run: php artisan titan:module:verify --all
+
   tests:
     name: Test Suite
     runs-on: ubuntu-latest

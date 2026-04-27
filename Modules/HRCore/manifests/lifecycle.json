@@ -1,0 +1,14 @@
+{
+  "module_id": "HRCore",
+  "version": "1.0.0",
+  "install": [
+    "RunMigrations",
+    "SeedDefaultData",
+    "SeedDefaultTemplates"
+  ],
+  "post_install": [
+    "VerifyDatabaseTables"
+  ],
+  "upgrade": {},
+  "rollback": []
+}
