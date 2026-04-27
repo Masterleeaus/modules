@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Owner;
 
+use App\Events\InvoiceSent;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Job;
@@ -110,7 +111,7 @@ class InvoiceController extends Controller
             'sent_at' => now(),
         ]);
 
-        // TODO: dispatch InvoiceSent notification in future milestone
+        InvoiceSent::dispatch($invoice);
 
         return redirect()->route('owner.invoices.show', $invoice)
             ->with('success', 'Invoice sent.');
