@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Actions\Estimates\ConvertEstimateToJobAction;
+use App\Actions\Estimates\SendEstimateAction;
 use App\Filament\Resources\EstimateResource\Pages;
 use App\Models\Estimate;
 use Filament\Actions;
@@ -57,6 +59,26 @@ class EstimateResource extends Resource
                 TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
+                Actions\Action::make('send')
+                    ->label('Send')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (Estimate $record): bool => $record->status === Estimate::STATUS_DRAFT)
+                    ->action(function (Estimate $record): void {
+                        app(SendEstimateAction::class)->execute($record);
+                    }),
+                Actions\Action::make('convert_to_job')
+                    ->label('Convert to Job')
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->visible(fn (Estimate $record): bool =>
+                        $record->status === Estimate::STATUS_ACCEPTED && $record->convertedJob === null
+                    )
+                    ->action(function (Estimate $record): void {
+                        app(ConvertEstimateToJobAction::class)->execute($record);
+                    }),
                 Actions\EditAction::make(),
             ])
             ->toolbarActions([

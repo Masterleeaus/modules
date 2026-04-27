@@ -9,9 +9,9 @@ class ChatbotDashboard extends Dashboard
 {
     protected static ?string $title = 'Chatbot Analytics';
 
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationGroup = 'Chatbot';
+    protected static string|\UnitEnum|null $navigationGroup = 'Chatbot';
 
     protected static ?int $navigationSort = 0;
 

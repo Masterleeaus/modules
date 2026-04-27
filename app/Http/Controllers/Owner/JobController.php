@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers\Owner;
 
-use App\Events\JobCreated;
-use App\Events\JobStatusChanged;
+use App\Actions\Jobs\AssignTechnicianAction;
+use App\Actions\Jobs\CreateJobAction;
+use App\Actions\Jobs\UpdateJobStatusAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\StoreJobRequest;
 use App\Http\Requests\Owner\UpdateJobRequest;
@@ -87,13 +88,10 @@ class JobController extends Controller
 
     public function store(StoreJobRequest $request): RedirectResponse
     {
-        $job = Job::create([
+        $job = app(CreateJobAction::class)->execute([
             ...$request->validated(),
             'organization_id' => $request->user()->organization_id,
-            'status'          => Job::STATUS_SCHEDULED,
         ]);
-
-        JobCreated::dispatch($job);
 
         return redirect()->route('owner.jobs.show', $job)
             ->with('success', 'Job created successfully.');
@@ -150,17 +148,7 @@ class JobController extends Controller
             'status' => ['required', Rule::in(array_keys(Job::statuses()))],
         ]);
 
-        $timestamps = match ($request->status) {
-            Job::STATUS_IN_PROGRESS => ['started_at'    => now()],
-            Job::STATUS_COMPLETED   => ['completed_at'  => now()],
-            Job::STATUS_CANCELLED   => ['cancelled_at'  => now()],
-            default                 => [],
-        };
-
-        $oldStatus = $job->status;
-        $job->update(['status' => $request->status, ...$timestamps]);
-
-        JobStatusChanged::dispatch($job->fresh(), $oldStatus, $request->status);
+        app(UpdateJobStatusAction::class)->execute($job, $request->status);
 
         return redirect()->back()->with('success', 'Status updated.');
     }
@@ -186,7 +174,7 @@ class JobController extends Controller
             'assigned_to' => ['nullable', 'integer', 'exists:users,id'],
         ]);
 
-        $job->update(['assigned_to' => $request->assigned_to]);
+        app(AssignTechnicianAction::class)->execute($job, $request->assigned_to);
 
         return redirect()->back()->with('success', 'Technician updated.');
     }
