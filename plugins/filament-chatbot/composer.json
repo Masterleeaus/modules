@@ -1,13 +1,15 @@
 {
   "name": "titanzero/filament-chatbot",
-	"version": "1.0.0",
-  "description": "Filament v4 Chatbot Plugin",
+  "version": "2.0.0",
+  "description": "Filament v4 Chatbot Plugin with AI Assistant Engine",
   "type": "library",
   "license": "MIT",
   "require": {
     "php": "^8.2",
     "filament/filament": "^4.0",
-    "laravel/framework": "^12.0"
+    "laravel/framework": "^12.0",
+    "livewire/livewire": "^3.0",
+    "spatie/laravel-package-tools": "^1.16"
   },
   "autoload": {
     "psr-4": {
