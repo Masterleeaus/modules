@@ -20,6 +20,7 @@ class Customer extends Model
         'phone',
         'mobile',
         'notes',
+        'reminder_preference',
     ];
 
     public function organization(): BelongsTo

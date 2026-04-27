@@ -21,15 +21,18 @@ class EstimatePackage extends Model
         'tax_amount',
         'total',
         'is_recommended',
+        'frequency',
+        'frequency_discount',
     ];
 
     protected function casts(): array
     {
         return [
-            'subtotal'       => 'decimal:2',
-            'tax_amount'     => 'decimal:2',
-            'total'          => 'decimal:2',
-            'is_recommended' => 'boolean',
+            'subtotal'           => 'decimal:2',
+            'tax_amount'         => 'decimal:2',
+            'total'              => 'decimal:2',
+            'is_recommended'     => 'boolean',
+            'frequency_discount' => 'decimal:2',
         ];
     }
 

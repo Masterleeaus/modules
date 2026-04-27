@@ -13,6 +13,7 @@ class JobTypeChecklistItem extends Model
     protected $fillable = [
         'job_type_id',
         'label',
+        'section',
         'sort_order',
         'is_required',
     ];

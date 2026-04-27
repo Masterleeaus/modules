@@ -6,6 +6,7 @@ use App\Filament\Resources\JobResource\Pages;
 use App\Filament\Resources\JobResource\RelationManagers\ChecklistItemsRelationManager;
 use App\Filament\Resources\JobResource\RelationManagers\LineItemsRelationManager;
 use App\Filament\Resources\JobResource\RelationManagers\MessagesRelationManager;
+use App\Filament\Resources\JobResource\RelationManagers\SupplyUsagesRelationManager;
 use App\Models\Customer;
 use App\Models\Job;
 use App\Models\Property;
@@ -208,6 +209,7 @@ class JobResource extends Resource
             ChecklistItemsRelationManager::class,
             LineItemsRelationManager::class,
             MessagesRelationManager::class,
+            SupplyUsagesRelationManager::class,
         ];
     }
 

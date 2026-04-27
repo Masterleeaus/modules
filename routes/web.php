@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Client\ClientPortalController;
+use App\Http\Controllers\JobReviewController;
 use App\Http\Controllers\Owner\BillingController;
 use App\Http\Controllers\Owner\CalendarController;
 use App\Http\Controllers\Owner\DispatchController;
@@ -195,3 +197,18 @@ Route::get('/verticals/{slug}', fn (string $slug) => redirect('/service-modes'))
 Route::get('/pages/{slug}', [CmsPageController::class, 'show'])->name('cms.pages.show');
 
 require __DIR__.'/auth.php';
+
+// ── Client Portal — magic-link authentication ─────────────────────────────
+Route::prefix('client')
+    ->name('client.')
+    ->group(function () {
+        Route::get('/login', [ClientPortalController::class, 'showLogin'])->name('login');
+        Route::post('/login', [ClientPortalController::class, 'sendMagicLink'])->name('login.send');
+        Route::get('/auth/{token}', [ClientPortalController::class, 'authenticate'])->name('auth');
+        Route::get('/dashboard', [ClientPortalController::class, 'dashboard'])->name('dashboard');
+        Route::post('/logout', [ClientPortalController::class, 'logout'])->name('logout');
+    });
+
+// ── Job Review & Tip — post-payment redirect ──────────────────────────────
+Route::get('/review/{token}', [JobReviewController::class, 'show'])->name('review.show');
+Route::post('/review/{token}', [JobReviewController::class, 'store'])->name('review.store');

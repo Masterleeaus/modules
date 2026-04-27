@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Job;
+use App\Models\JobCrew;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -31,7 +32,7 @@ class CalendarController extends Controller
         $jobs = Job::where('organization_id', $orgId)
             ->whereNotNull('scheduled_at')
             ->whereBetween('scheduled_at', [$request->start, $request->end])
-            ->with(['customer', 'jobType'])
+            ->with(['customer', 'jobType', 'assignedTechnician', 'crew.user'])
             ->get();
 
         $events = $jobs->map(fn (Job $job) => [
@@ -48,8 +49,13 @@ class CalendarController extends Controller
             'borderColor'     => $job->jobType?->color ?? '#6366f1',
             'textColor'       => '#ffffff',
             'extendedProps'   => [
-                'status'   => $job->status,
-                'customer' => $job->customer?->full_name,
+                'status'    => $job->status,
+                'customer'  => $job->customer?->full_name,
+                'technician' => $job->assignedTechnician?->name,
+                'crew'      => $job->crew->map(fn ($c) => [
+                    'name' => $c->user?->name,
+                    'role' => $c->role,
+                ]),
             ],
         ]);
 
