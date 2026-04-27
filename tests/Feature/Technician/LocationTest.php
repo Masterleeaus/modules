@@ -1,6 +1,6 @@
 <?php
 
-use App\Events\DriverLocationUpdated;
+use App\Events\TechnicianLocationUpdated;
 use App\Models\DriverLocation;
 use App\Models\Organization;
 use App\Models\User;
@@ -47,7 +47,7 @@ test('technician can post a location update', function () {
     ]);
 });
 
-test('location update fires DriverLocationUpdated broadcast event', function () {
+test('location update fires TechnicianLocationUpdated broadcast event', function () {
     Event::fake();
     $user = locationSetup();
 
@@ -58,7 +58,7 @@ test('location update fires DriverLocationUpdated broadcast event', function () 
         ])
         ->assertCreated();
 
-    Event::assertDispatched(DriverLocationUpdated::class, function ($event) use ($user) {
+    Event::assertDispatched(TechnicianLocationUpdated::class, function ($event) use ($user) {
         return $event->location->user_id === $user->id;
     });
 });

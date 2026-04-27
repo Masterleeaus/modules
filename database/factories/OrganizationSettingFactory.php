@@ -16,17 +16,21 @@ class OrganizationSettingFactory extends Factory
     public function definition(): array
     {
         return [
-            'organization_id' => Organization::factory(),
-            'company_name'    => null,
-            'company_email'   => null,
-            'company_phone'   => null,
-            'company_address' => null,
-            'company_city'    => null,
-            'company_state'   => null,
-            'company_zip'     => null,
-            'company_website' => null,
-            'logo_path'       => null,
-            'default_tax_rate' => 0,
+            'organization_id'        => Organization::factory(),
+            'company_name'           => null,
+            'company_email'          => null,
+            'company_phone'          => null,
+            'company_address'        => null,
+            'company_city'           => null,
+            'company_state'          => null,
+            'company_zip'            => null,
+            'company_website'        => null,
+            'logo_path'              => null,
+            'default_tax_rate'       => 0,
+            'brand_color'            => null,
+            'customer_facing_name'   => null,
+            'setup_completed_steps'  => null,
+            'setup_complete'         => false,
         ];
     }
 }

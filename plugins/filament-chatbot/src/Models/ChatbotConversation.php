@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Extensions\Chatbot\System\Models;
+namespace TitanZero\FilamentChatbot\Models;
 
-use App\Helpers\Classes\MarketplaceHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -81,19 +80,8 @@ class ChatbotConversation extends Model
 
     public function customerTags(): BelongsToMany
     {
-        $tagClass = \App\Extensions\ChatbotCustomerTag\System\Models\ChatbotCustomerTag::class;
-
-        if (! MarketplaceHelper::isRegistered('chatbot-customer-tag') || ! class_exists($tagClass)) {
-            return $this->belongsToMany(self::class, $this->getTable(), 'id', 'id')
-                ->whereRaw('1 = 0');
-        }
-
-        return $this->belongsToMany(
-            $tagClass,
-            'ext_chatbot_conversation_customer_tag',
-            'conversation_id',
-            'customer_tag_id'
-        )->withTimestamps();
+        return $this->belongsToMany(self::class, $this->getTable(), 'id', 'id')
+            ->whereRaw('1 = 0');
     }
 
     public function widgetHistories(): HasMany

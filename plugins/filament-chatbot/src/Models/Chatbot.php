@@ -1,11 +1,7 @@
 <?php
 
-namespace App\Extensions\Chatbot\System\Models;
+namespace TitanZero\FilamentChatbot\Models;
 
-use App\Extensions\Chatbot\System\Enums\BubbleDesign;
-use App\Extensions\Chatbot\System\Enums\ColorModeEnum;
-use App\Extensions\Chatbot\System\Enums\InteractionType;
-use App\Extensions\Chatbot\System\Enums\PositionEnum;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -105,9 +101,9 @@ class Chatbot extends Model
     ];
 
     protected $casts = [
-        'color_mode'                         => ColorModeEnum::class,
-        'position'                           => PositionEnum::class,
-        'interaction_type'                   => InteractionType::class,
+        'color_mode'                         => 'string',
+        'position'                           => 'string',
+        'interaction_type'                   => 'string',
         'do_not_go_beyond_instructions'      => 'boolean',
         'limit_per_minute'                   => 'integer',
         'show_pre_defined_questions'         => 'boolean',
@@ -122,7 +118,7 @@ class Chatbot extends Model
         'suggested_prompts_enabled'          => 'boolean',
         'is_gdpr'                            => 'boolean',
         'show_social_links_in_first_message' => 'boolean',
-        'bubble_design' 				                 => BubbleDesign::class,
+        'bubble_design'                      => 'string',
         'is_review_enabled'                  => 'boolean',
         'review_responses'                   => 'array',
         'is_booking_assistant'               => 'boolean',

@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Owner\SetupController;
+use App\Models\Customer;
+use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Models\Job;
 use App\Models\JobType;
+use App\Models\OrganizationSetting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -53,14 +57,69 @@ class ReportingController extends Controller
 
         return inertia('Owner/Dashboard', [
             'stats' => [
-                'jobs_today'       => $jobsToday,
-                'revenue_this_week' => (float) $revenueThisWeek,
+                'jobs_today'          => $jobsToday,
+                'revenue_this_week'   => (float) $revenueThisWeek,
                 'accounts_receivable' => (float) $ar,
-                'overdue_invoices'  => $overdueInvoices,
-                'open_jobs'         => $openJobs,
-                'unassigned_jobs'   => $unassignedJobs,
+                'overdue_invoices'    => $overdueInvoices,
+                'open_jobs'           => $openJobs,
+                'unassigned_jobs'     => $unassignedJobs,
             ],
+            'onboarding_checklist' => $this->onboardingChecklist($orgId),
         ]);
+    }
+
+    // ─── Onboarding Checklist ─────────────────────────────────────────────────
+
+    /**
+     * Returns a checklist of post-setup tasks with their completion status.
+     * Returns null if setup is not yet complete.
+     */
+    private function onboardingChecklist(int $orgId): ?array
+    {
+        $settings = OrganizationSetting::where('organization_id', $orgId)->first();
+
+        // Only show checklist after setup is marked complete
+        if (! $settings || ! $settings->setup_complete) {
+            return null;
+        }
+
+        $hasJob      = Job::where('organization_id', $orgId)->exists();
+        $hasEstimate = Estimate::where('organization_id', $orgId)->exists();
+        $hasCustomer = Customer::where('organization_id', $orgId)->exists();
+
+        $items = [
+            [
+                'key'       => 'create_job',
+                'label'     => 'Create your first job',
+                'done'      => $hasJob,
+                'href'      => '/owner/jobs/create',
+            ],
+            [
+                'key'       => 'send_estimate',
+                'label'     => 'Send your first estimate',
+                'done'      => $hasEstimate,
+                'href'      => '/owner/estimates/create',
+            ],
+            [
+                'key'       => 'add_customer',
+                'label'     => 'Add a customer',
+                'done'      => $hasCustomer,
+                'href'      => '/owner/customers/create',
+            ],
+            [
+                'key'       => 'try_dispatch',
+                'label'     => 'Try the dispatch board',
+                'done'      => false,
+                'href'      => '/owner/dispatch',
+            ],
+        ];
+
+        $allDone = collect($items)->every(fn ($item) => $item['done']);
+
+        return [
+            'items'    => $items,
+            'all_done' => $allDone,
+        ];
     }
 
     // ─── Jobs by Type ─────────────────────────────────────────────────────────

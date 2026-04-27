@@ -47,6 +47,12 @@ class AccountingsServiceProvider extends ServiceProvider
                 \Modules\Accountings\Observers\InvoiceAccountingObserver::class
             );
         }
+
+        if (class_exists(\App\Models\Payment::class)) {
+            \App\Models\Payment::observe(
+                \Modules\Accountings\Observers\PaymentObserver::class
+            );
+        }
     }
 
     /**
@@ -60,6 +66,11 @@ class AccountingsServiceProvider extends ServiceProvider
         $this->app->singleton(
             \Modules\Accountings\Services\FinancialYearService::class,
             \Modules\Accountings\Services\FinancialYearService::class
+        );
+
+        $this->app->singleton(
+            \Modules\Accountings\Services\JournalAutoCreationService::class,
+            \Modules\Accountings\Services\JournalAutoCreationService::class
         );
     }
 
