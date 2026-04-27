@@ -7,7 +7,7 @@ use App\Services\MessageDispatcher;
 use App\Services\TemplateRenderer;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SendJobConfirmationSms implements ShouldQueue
+class HandleJobCreatedSendSmsConfirmation implements ShouldQueue
 {
     public function __construct(
         private readonly MessageDispatcher $dispatcher,

@@ -5,10 +5,10 @@ namespace App\Providers;
 use App\Events\EstimateSent;
 use App\Events\JobCreated;
 use App\Events\JobStatusChanged;
+use App\Listeners\HandleJobCreatedSendEmailConfirmation;
+use App\Listeners\HandleJobCreatedSendSmsConfirmation;
+use App\Listeners\HandleJobStatusChangedSendNotifications;
 use App\Listeners\SendEstimateNotification;
-use App\Listeners\SendJobConfirmationEmail;
-use App\Listeners\SendJobConfirmationSms;
-use App\Listeners\SendJobStatusMessages;
 use App\Services\GeocodingService;
 use App\Services\MessageDispatcher;
 use App\Services\SmsService;
@@ -40,9 +40,9 @@ class AppServiceProvider extends ServiceProvider
         Vite::prefetch(concurrency: 3);
 
         Event::listen(EstimateSent::class, SendEstimateNotification::class);
-        Event::listen(JobCreated::class, SendJobConfirmationEmail::class);
-        Event::listen(JobCreated::class, SendJobConfirmationSms::class);
-        Event::listen(JobStatusChanged::class, SendJobStatusMessages::class);
+        Event::listen(JobCreated::class, HandleJobCreatedSendEmailConfirmation::class);
+        Event::listen(JobCreated::class, HandleJobCreatedSendSmsConfirmation::class);
+        Event::listen(JobStatusChanged::class, HandleJobStatusChangedSendNotifications::class);
 
         if (class_exists(\TomatoPHP\FilamentCms\Facades\FilamentCMS::class)
             && class_exists(\TomatoPHP\FilamentCms\Services\Contracts\CmsType::class)) {

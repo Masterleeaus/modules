@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Technician;
 
-use App\Events\DriverLocationUpdated;
+use App\Events\TechnicianLocationUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\DriverLocation;
 use Illuminate\Http\JsonResponse;
@@ -29,7 +29,7 @@ class LocationController extends Controller
             'recorded_at' => $validated['recorded_at'] ?? now(),
         ]);
 
-        DriverLocationUpdated::dispatch($location);
+        TechnicianLocationUpdated::dispatch($location);
 
         return response()->json(['data' => $location], 201);
     }
