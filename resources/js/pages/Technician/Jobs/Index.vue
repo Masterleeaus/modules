@@ -1,16 +1,7 @@
 <script setup lang="ts">
 import TechnicianLayout from '@/layouts/TechnicianLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-
-interface Job {
-    id: number;
-    title: string;
-    status: string;
-    scheduled_at: string | null;
-    customer: { id: number; first_name: string; last_name: string } | null;
-    property: { id: number; address_line1: string; city: string; state: string } | null;
-    job_type: { id: number; name: string; color: string } | null;
-}
+import type { Job } from '@/types';
 
 defineProps<{
     jobs: Job[];
@@ -66,7 +57,7 @@ function formatTime(dt: string | null): string {
                             </p>
                             <div class="flex items-center justify-between pt-1">
                                 <span v-if="job.job_type" class="inline-flex items-center gap-1.5">
-                                    <span class="h-2 w-2 rounded-full" :style="{ background: job.job_type.color }" />
+                                    <span class="h-2 w-2 rounded-full" :style="job.job_type.color ? { background: job.job_type.color } : undefined" />
                                     {{ job.job_type.name }}
                                 </span>
                                 <span class="ml-auto text-xs">{{ formatTime(job.scheduled_at) }}</span>

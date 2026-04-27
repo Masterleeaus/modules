@@ -1,40 +1,22 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import type { Customer, Invoice, Job, JobStatus } from '@/types';
 
-interface Job {
-    id: number;
-    title: string;
-    status: string;
-    scheduled_at: string | null;
-    completed_at: string | null;
+// Client portal augments the Job with pre-formatted fields for display
+type ClientJob = Pick<Job, 'id' | 'title' | 'scheduled_at' | 'completed_at'> & {
+    status: JobStatus;
     job_type: { name: string; color: string } | null;
     address: string | null;
     technician: string | null;
     invoice_id: number | null;
     review_token: string;
     has_review: boolean;
-}
-
-interface Invoice {
-    id: number;
-    invoice_number: string;
-    total: string;
-    balance_due: string;
-    due_at: string;
-    status: string;
-}
-
-interface Customer {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string;
-}
+};
 
 const props = defineProps<{
     customer: Customer;
-    upcoming_jobs: Job[];
-    recent_jobs: Job[];
+    upcoming_jobs: ClientJob[];
+    recent_jobs: ClientJob[];
     open_invoices: Invoice[];
 }>();
 

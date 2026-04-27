@@ -2,51 +2,18 @@
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import type { Invoice, InvoiceLineItem, Payment, UserRef } from '@/types';
 
-interface LineItem {
-    id: number;
-    name: string;
-    description: string | null;
-    unit_price: string;
-    quantity: string;
-    total: string;
-    is_taxable: boolean;
-}
-
-interface Payment {
-    id: number;
-    amount: string;
-    method: string;
-    reference: string | null;
-    paid_at: string;
-    recorded_by: { id: number; name: string } | null;
-    notes: string | null;
-}
-
-interface Invoice {
-    id: number;
-    invoice_number: string | null;
-    status: string;
-    subtotal: string;
-    tax_rate: string;
-    tax_amount: string;
-    discount_amount: string;
-    total: string;
-    amount_paid: string;
-    balance_due: string;
-    issued_at: string | null;
-    due_at: string | null;
-    sent_at: string | null;
-    paid_at: string | null;
-    notes: string | null;
-    customer: { id: number; first_name: string; last_name: string } | null;
-    job: { id: number; title: string } | null;
-    line_items: LineItem[];
-    payments: Payment[];
-}
+// The Show page always receives the invoice with its relations eager-loaded.
+// recorded_by on Payment is the loaded UserRef (not the raw FK integer).
+type PaymentDetail = Omit<Payment, 'recorded_by'> & { recorded_by: UserRef | null };
+type InvoiceWithDetails = Invoice & {
+    line_items: InvoiceLineItem[];
+    payments: PaymentDetail[];
+};
 
 const props = defineProps<{
-    invoice: Invoice;
+    invoice: InvoiceWithDetails;
     statuses: Record<string, string>;
 }>();
 

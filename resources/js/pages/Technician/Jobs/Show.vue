@@ -2,6 +2,7 @@
 import TechnicianLayout from '@/layouts/TechnicianLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
+import type { Job, Item, Attachment, JobLineItem, JobChecklistItem, JobStatus } from '@/types';
 
 // Compress an image File to a JPEG Blob under `maxKB` kilobytes.
 async function compressImage(file: File, maxKB = 800): Promise<Blob> {
@@ -31,70 +32,6 @@ async function compressImage(file: File, maxKB = 800): Promise<Blob> {
         };
         img.src = url;
     });
-}
-
-interface ChecklistItem {
-    id: number;
-    label: string;
-    sort_order: number;
-    is_required: boolean;
-    completed_at: string | null;
-}
-
-interface Attachment {
-    id: number;
-    filename: string;
-    url: string;
-    tag: 'before' | 'after' | null;
-    mime_type: string | null;
-}
-
-interface Property {
-    id: number;
-    address_line1: string;
-    city: string;
-    state: string;
-    postal_code: string;
-}
-
-interface JobMessage {
-    id: number;
-    channel: string;
-    event: string;
-    recipient: string;
-    status: string;
-    created_at: string;
-}
-
-interface Job {
-    id: number;
-    title: string;
-    description: string | null;
-    status: string;
-    scheduled_at: string | null;
-    started_at: string | null;
-    arrived_at: string | null;
-    completed_at: string | null;
-    office_notes: string | null;
-    technician_notes: string | null;
-    customer_notes: string | null;
-    customer: { id: number; first_name: string; last_name: string; phone?: string } | null;
-    property: Property | null;
-    job_type: { id: number; name: string; color: string } | null;
-    checklist_items: ChecklistItem[];
-    attachments: Attachment[];
-    line_items: LineItem[];
-    messages: JobMessage[];
-}
-
-interface LineItem {
-    id: number;
-    item_id: number | null;
-    name: string;
-    unit_price: string;
-    quantity: string;
-    total: string;
-    sort_order: number;
 }
 
 interface CatalogItem {
@@ -148,8 +85,8 @@ const deletingPhotoId = ref<number | null>(null);
 const beforeInputRef = ref<HTMLInputElement | null>(null);
 const afterInputRef = ref<HTMLInputElement | null>(null);
 
-const beforePhotos = computed(() => photos.filter((p) => p.tag === 'before'));
-const afterPhotos = computed(() => photos.filter((p) => p.tag === 'after'));
+const beforePhotos = computed(() => photos.filter((p: Attachment) => p.tag === 'before'));
+const afterPhotos = computed(() => photos.filter((p: Attachment) => p.tag === 'after'));
 
 async function handlePhotoCapture(e: Event, tag: 'before' | 'after') {
     const input = e.target as HTMLInputElement;
@@ -210,9 +147,9 @@ function deletePhoto(photo: Attachment) {
 }
 
 // Line items
-const lineItems = reactive<LineItem[]>([...(props.job.line_items ?? [])]);
+const lineItems = reactive<JobLineItem[]>([...(props.job.line_items ?? [])]);
 const lineItemTotal = computed(() =>
-    lineItems.reduce((sum, li) => sum + parseFloat(li.unit_price) * parseFloat(li.quantity), 0),
+    lineItems.reduce((sum: number, li: JobLineItem) => sum + parseFloat(li.unit_price) * parseFloat(li.quantity), 0),
 );
 
 // Add form state
@@ -287,14 +224,14 @@ async function submitAddLineItem() {
 const editingLineItemId = ref<number | null>(null);
 const editForm = reactive({ name: '', unit_price: '', quantity: '' });
 
-function startEditLineItem(item: LineItem) {
+function startEditLineItem(item: JobLineItem) {
     editingLineItemId.value = item.id;
     editForm.name = item.name;
     editForm.unit_price = parseFloat(item.unit_price).toFixed(2);
     editForm.quantity = parseFloat(item.quantity).toString();
 }
 
-async function saveLineItem(item: LineItem) {
+async function saveLineItem(item: JobLineItem) {
     const csrfMeta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
     const res = await fetch(`/api/technician/jobs/${props.job.id}/line-items/${item.id}`, {
         method: 'PATCH',
@@ -320,7 +257,7 @@ async function saveLineItem(item: LineItem) {
 
 function cancelEditLineItem() { editingLineItemId.value = null; }
 
-async function removeLineItem(item: LineItem) {
+async function removeLineItem(item: JobLineItem) {
     const csrfMeta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
     const res = await fetch(`/api/technician/jobs/${props.job.id}/line-items/${item.id}`, {
         method: 'DELETE',
@@ -343,7 +280,7 @@ const directionsUrl = computed(() => {
     return `https://www.google.com/maps/dir/?api=1&destination=${q}`;
 });
 
-function toggleChecklistItem(item: ChecklistItem) {
+function toggleChecklistItem(item: JobChecklistItem) {
     const next = !checklistState[item.id];
     checklistState[item.id] = next;
     togglingItem.value = item.id;
@@ -365,7 +302,7 @@ function toggleChecklistItem(item: ChecklistItem) {
 }
 
 function changeStatus(newStatus: string) {
-    statusForm.status = newStatus;
+    statusForm.status = newStatus as JobStatus;
     statusForm.patch(`/api/technician/jobs/${props.job.id}/status`, {
         onSuccess: () => statusForm.reset(),
     });
@@ -421,7 +358,7 @@ const timeline = computed(() => {
 
     for (const msg of (props.job.messages ?? [])) {
         if (msg.status === 'sent') {
-            add(msg.created_at, MSG_EVENT_LABELS[msg.event] ?? msg.event, 'message',
+            add(msg.created_at, (msg.event ? MSG_EVENT_LABELS[msg.event] : null) ?? msg.event ?? '—', 'message',
                 msg.channel === 'email' ? 'Email' : 'SMS');
         }
     }
@@ -517,7 +454,7 @@ const timeline = computed(() => {
                     <div v-if="job.job_type" class="flex justify-between px-4 py-3">
                         <dt class="text-slate-500">Type</dt>
                         <dd class="flex items-center gap-1.5 font-medium text-slate-800">
-                            <span class="h-2 w-2 rounded-full" :style="{ background: job.job_type.color }" />
+                            <span class="h-2 w-2 rounded-full" :style="job.job_type.color ? { background: job.job_type.color } : undefined" />
                             {{ job.job_type.name }}
                         </dd>
                     </div>

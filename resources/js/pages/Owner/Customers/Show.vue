@@ -1,30 +1,12 @@
 <script setup lang="ts">
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import type { Customer, Property } from '@/types';
 
-interface Property {
-    id: number;
-    name: string | null;
-    address_line1: string;
-    address_line2: string | null;
-    city: string;
-    state: string;
-    postal_code: string;
-}
+// The Show page always receives the customer with properties eager-loaded
+type CustomerWithProperties = Customer & { properties: Property[] };
 
-interface Customer {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string | null;
-    phone: string | null;
-    mobile: string | null;
-    notes: string | null;
-    created_at: string;
-    properties: Property[];
-}
-
-const props = defineProps<{ customer: Customer }>();
+const props = defineProps<{ customer: CustomerWithProperties }>();
 
 function archiveCustomer() {
     if (confirm(`Archive ${props.customer.first_name} ${props.customer.last_name}? They can be restored later.`)) {
