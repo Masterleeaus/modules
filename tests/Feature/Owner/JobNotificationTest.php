@@ -2,8 +2,8 @@
 
 use App\Events\JobCreated;
 use App\Events\JobStatusChanged;
-use App\Listeners\SendJobConfirmationEmail;
-use App\Listeners\SendJobConfirmationSms;
+use App\Listeners\HandleJobCreatedSendEmailConfirmation;
+use App\Listeners\HandleJobCreatedSendSmsConfirmation;
 use App\Models\Customer;
 use App\Models\Job;
 use App\Models\Organization;
@@ -47,7 +47,7 @@ test('creating a job dispatches the JobCreated event', function () {
     Event::assertDispatched(JobCreated::class);
 });
 
-test('SendJobConfirmationEmail listener logs email to job_messages', function () {
+test('HandleJobCreatedSendEmailConfirmation listener logs email to job_messages', function () {
     Mail::fake();
 
     $org      = Organization::factory()->create();
@@ -58,7 +58,7 @@ test('SendJobConfirmationEmail listener logs email to job_messages', function ()
     $job = Job::factory()->forCustomer($customer)->create();
 
     $sent = [];
-    $listener = new SendJobConfirmationEmail(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
+    $listener = new HandleJobCreatedSendEmailConfirmation(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
     $listener->handle(new JobCreated($job));
 
     $this->assertDatabaseHas('job_messages', [
@@ -70,7 +70,7 @@ test('SendJobConfirmationEmail listener logs email to job_messages', function ()
     ]);
 });
 
-test('SendJobConfirmationEmail skips customers with no email', function () {
+test('HandleJobCreatedSendEmailConfirmation skips customers with no email', function () {
     Mail::fake();
 
     $org      = Organization::factory()->create();
@@ -81,7 +81,7 @@ test('SendJobConfirmationEmail skips customers with no email', function () {
     $job = Job::factory()->forCustomer($customer)->create();
 
     $sent = [];
-    $listener = new SendJobConfirmationEmail(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
+    $listener = new HandleJobCreatedSendEmailConfirmation(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
     $listener->handle(new JobCreated($job));
 
     Mail::assertNothingSent();
@@ -89,7 +89,7 @@ test('SendJobConfirmationEmail skips customers with no email', function () {
 
 // ── SMS (#41 / #88) ───────────────────────────────────────────────────────────
 
-test('SendJobConfirmationSms listener sends SMS to customer mobile', function () {
+test('HandleJobCreatedSendSmsConfirmation listener sends SMS to customer mobile', function () {
     $sent     = [];
     $renderer = new TemplateRenderer();
 
@@ -101,7 +101,7 @@ test('SendJobConfirmationSms listener sends SMS to customer mobile', function ()
     ]);
     $job = Job::factory()->forCustomer($customer)->create(['title' => 'Pipe Repair']);
 
-    $listener = new SendJobConfirmationSms(makeDispatcherWithFakeSms($sent), $renderer);
+    $listener = new HandleJobCreatedSendSmsConfirmation(makeDispatcherWithFakeSms($sent), $renderer);
     $listener->handle(new JobCreated($job));
 
     expect($sent)->toHaveCount(1);
@@ -109,7 +109,7 @@ test('SendJobConfirmationSms listener sends SMS to customer mobile', function ()
     expect($sent[0]['message'])->toContain('Pipe Repair');
 });
 
-test('SendJobConfirmationSms falls back to phone when mobile is null', function () {
+test('HandleJobCreatedSendSmsConfirmation falls back to phone when mobile is null', function () {
     $sent = [];
 
     $org      = Organization::factory()->create();
@@ -120,13 +120,13 @@ test('SendJobConfirmationSms falls back to phone when mobile is null', function 
     ]);
     $job = Job::factory()->forCustomer($customer)->create();
 
-    $listener = new SendJobConfirmationSms(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
+    $listener = new HandleJobCreatedSendSmsConfirmation(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
     $listener->handle(new JobCreated($job));
 
     expect($sent[0]['to'])->toBe('+15558887777');
 });
 
-test('SendJobConfirmationSms skips customers with no phone numbers', function () {
+test('HandleJobCreatedSendSmsConfirmation skips customers with no phone numbers', function () {
     $sent = [];
 
     $org      = Organization::factory()->create();
@@ -137,7 +137,7 @@ test('SendJobConfirmationSms skips customers with no phone numbers', function ()
     ]);
     $job = Job::factory()->forCustomer($customer)->create();
 
-    $listener = new SendJobConfirmationSms(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
+    $listener = new HandleJobCreatedSendSmsConfirmation(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
     $listener->handle(new JobCreated($job));
 
     expect($sent)->toBeEmpty();
@@ -153,7 +153,7 @@ test('SMS message contains the job title', function () {
         'scheduled_at' => '2026-06-15 10:00:00',
     ]);
 
-    $listener = new SendJobConfirmationSms(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
+    $listener = new HandleJobCreatedSendSmsConfirmation(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
     $listener->handle(new JobCreated($job));
 
     expect($sent[0]['message'])->toContain('Pipe Repair');
@@ -161,13 +161,13 @@ test('SMS message contains the job title', function () {
 
 test('SMS listener is queued', function () {
     $sent = [];
-    expect(new SendJobConfirmationSms(makeDispatcherWithFakeSms($sent), new TemplateRenderer()))
+    expect(new HandleJobCreatedSendSmsConfirmation(makeDispatcherWithFakeSms($sent), new TemplateRenderer()))
         ->toBeInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class);
 });
 
 test('email listener is queued', function () {
     $sent = [];
-    expect(new SendJobConfirmationEmail(makeDispatcherWithFakeSms($sent), new TemplateRenderer()))
+    expect(new HandleJobCreatedSendEmailConfirmation(makeDispatcherWithFakeSms($sent), new TemplateRenderer()))
         ->toBeInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class);
 });
 
@@ -180,7 +180,7 @@ test('en route status change sends SMS to customer', function () {
     $customer = Customer::factory()->create(['organization_id' => $org->id, 'mobile' => '+15550002222']);
     $job      = Job::factory()->forCustomer($customer)->create(['status' => Job::STATUS_SCHEDULED]);
 
-    $listener = new \App\Listeners\SendJobStatusMessages(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
+    $listener = new \App\Listeners\HandleJobStatusChangedSendNotifications(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
     $listener->handle(new JobStatusChanged($job, Job::STATUS_SCHEDULED, Job::STATUS_EN_ROUTE));
 
     expect($sent)->toHaveCount(1);
@@ -195,7 +195,7 @@ test('completed status change logs email to job_messages', function () {
     $customer = Customer::factory()->create(['organization_id' => $org->id, 'email' => 'done@example.com']);
     $job      = Job::factory()->forCustomer($customer)->create(['status' => Job::STATUS_IN_PROGRESS]);
 
-    $listener = new \App\Listeners\SendJobStatusMessages(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
+    $listener = new \App\Listeners\HandleJobStatusChangedSendNotifications(makeDispatcherWithFakeSms($sent), new TemplateRenderer());
     $listener->handle(new JobStatusChanged($job, Job::STATUS_IN_PROGRESS, Job::STATUS_COMPLETED));
 
     $this->assertDatabaseHas('job_messages', [

@@ -63,3 +63,25 @@ Settings routes are in `routes/settings.php` (all under `auth` middleware). Cont
 
 ### SSR
 SSR entry point is `resources/js/ssr.ts`. Run with `composer run dev:ssr` or build with `npm run build:ssr` then `php artisan inertia:start-ssr`.
+
+## Naming Conventions (Blueprint 32)
+
+### Events
+Pattern: `{Entity}{PastTenseVerb}` — e.g. `JobCreated`, `JobStatusChanged`, `TechnicianLocationUpdated`
+
+### Queued Jobs
+Pattern: `{Verb}{Entity}Job` — e.g. `SendJobReminderJob`
+
+### Listeners
+Pattern: `{Handle|Queue}{Event}{Action}` — e.g. `HandleJobCreatedSendEmailConfirmation`, `HandleJobStatusChangedSendNotifications`
+
+### Notifications
+Pattern: `{Entity}{Event}Notification` — e.g. `TrialEndingNotification`, `JobReminderNotification`, `JobCompletedNotification`
+
+### Console Commands
+Pattern: `{Verb}{Entity}s` (plural) — e.g. `SendJobReminders`, `SendInvoiceReminders`, `GenerateRecurringJobs`
+
+### Intentional Exceptions / Known Audit Items
+- `SendEstimateNotification` (Listener) — predates Blueprint 32; handles both email and SMS for the `EstimateSent` event. Rename to `HandleEstimateSentSendNotification` tracked separately.
+- `SendInvoiceNotification` (Listener) — predates Blueprint 32; handles both email and SMS for the `InvoiceSent` event. Rename to `HandleInvoiceSentSendNotification` tracked separately.
+- `SendJobReminders` (`jobs:send-reminders`) vs `DispatchJobReminders` (`jobs:dispatch-reminders`) — these are **not duplicates**. `SendJobReminders` directly sends via `MessageDispatcher`+`TemplateRenderer` (no deduplication). `DispatchJobReminders` dispatches `SendJobReminderJob` queue jobs with DB-column deduplication. Consolidation is tracked separately.
