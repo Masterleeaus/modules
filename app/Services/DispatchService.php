@@ -1,0 +1,130 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\DriverLocation;
+use App\Models\Job;
+use App\Models\JobCrew;
+use App\Models\User;
+use Illuminate\Support\Collection;
+
+class DispatchService
+{
+    /**
+     * Return the latest location, current job, and upcoming jobs for every
+     * technician in the given organisation.
+     *
+     * @return array{data: Collection<int, array<string, mixed>>}
+     */
+    public function getActiveTechnicians(int $organizationId): array
+    {
+        $technicians = User::role('technician')
+            ->where('organization_id', $organizationId)
+            ->get(['id', 'name']);
+
+        if ($technicians->isEmpty()) {
+            return ['data' => collect()];
+        }
+
+        $techIds = $technicians->pluck('id');
+
+        // Latest location per technician — one query using a self-join
+        $latestLocations = DriverLocation::whereIn('user_id', $techIds)
+            ->whereIn('id', function ($sub) use ($techIds) {
+                $sub->selectRaw('MAX(id)')
+                    ->from('driver_locations')
+                    ->whereIn('user_id', $techIds)
+                    ->groupBy('user_id');
+            })
+            ->get(['user_id', 'latitude', 'longitude', 'heading', 'speed', 'recorded_at'])
+            ->keyBy('user_id');
+
+        // Active (en-route / in-progress) jobs — include crew members too
+        $crewJobIds = JobCrew::whereIn('user_id', $techIds)->pluck('job_id');
+
+        $activeJobs = Job::where(function ($q) use ($techIds, $crewJobIds) {
+                $q->whereIn('assigned_to', $techIds)
+                  ->orWhereIn('id', $crewJobIds);
+            })
+            ->whereIn('status', [Job::STATUS_EN_ROUTE, Job::STATUS_IN_PROGRESS])
+            ->with(['customer:id,first_name,last_name', 'property:id,address_line1,city', 'crew'])
+            ->orderByDesc('scheduled_at')
+            ->get()
+            ->groupBy(function ($job) use ($techIds) {
+                if (in_array($job->assigned_to, $techIds->all())) {
+                    return $job->assigned_to;
+                }
+                $crewMember = $job->crew->whereIn('user_id', $techIds->all())->first();
+
+                return $crewMember?->user_id;
+            })
+            ->map(fn ($jobs) => $jobs->first());
+
+        // Upcoming scheduled jobs today — one query, up to 3 per technician
+        $upcomingJobsAll = Job::whereIn('assigned_to', $techIds)
+            ->where('status', Job::STATUS_SCHEDULED)
+            ->whereDate('scheduled_at', today())
+            ->with(['customer:id,first_name,last_name', 'property:id,address_line1,city'])
+            ->orderBy('scheduled_at')
+            ->get()
+            ->groupBy('assigned_to')
+            ->map(fn ($jobs) => $jobs->take(3));
+
+        $data = $technicians->map(function (User $tech) use ($latestLocations, $activeJobs, $upcomingJobsAll) {
+            $location     = $latestLocations->get($tech->id);
+            $currentJob   = $activeJobs->get($tech->id);
+            $upcomingJobs = $upcomingJobsAll->get($tech->id, collect());
+
+            return [
+                'id'   => $tech->id,
+                'name' => $tech->name,
+                'location' => $location ? [
+                    'latitude'    => (float) $location->latitude,
+                    'longitude'   => (float) $location->longitude,
+                    'heading'     => $location->heading !== null ? (float) $location->heading : null,
+                    'recorded_at' => $location->recorded_at->toISOString(),
+                ] : null,
+                'current_job'   => $currentJob ? $this->formatJob($currentJob) : null,
+                'upcoming_jobs' => $upcomingJobs->map(fn ($j) => $this->formatJob($j))->values(),
+            ];
+        });
+
+        return ['data' => $data];
+    }
+
+    /**
+     * Return the location trail (points) for a technician today.
+     *
+     * @return Collection<int, array{lat: float, lng: float}>
+     */
+    public function getTechnicianTrail(int $userId): Collection
+    {
+        return DriverLocation::where('user_id', $userId)
+            ->whereDate('recorded_at', today())
+            ->orderBy('recorded_at')
+            ->get(['latitude', 'longitude', 'recorded_at'])
+            ->map(fn ($p) => [
+                'lat' => (float) $p->latitude,
+                'lng' => (float) $p->longitude,
+            ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function formatJob(Job $job): array
+    {
+        return [
+            'id'           => $job->id,
+            'title'        => $job->title,
+            'status'       => $job->status,
+            'scheduled_at' => $job->scheduled_at?->toISOString(),
+            'customer'     => $job->customer
+                ? "{$job->customer->first_name} {$job->customer->last_name}"
+                : null,
+            'address' => $job->property
+                ? "{$job->property->address_line1}, {$job->property->city}"
+                : null,
+        ];
+    }
+}
