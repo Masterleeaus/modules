@@ -2,16 +2,15 @@
 
 namespace TitanZero\FilamentChatbot;
 
-use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
+use Livewire\Livewire;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use TitanZero\FilamentChatbot\Filament\Resources\ChatbotResource;
-use TitanZero\FilamentChatbot\Filament\Resources\ChatbotConversationResource;
-use TitanZero\FilamentChatbot\Filament\Resources\ChatbotChannelResource;
-use TitanZero\FilamentChatbot\Filament\Resources\ChatbotCustomerResource;
+use TitanZero\FilamentChatbot\Http\Livewire\AssistantSidebar;
+use TitanZero\FilamentChatbot\Services\AssistantService;
+use TitanZero\FilamentChatbot\Services\RunProcessorService;
 
 class ChatbotPluginServiceProvider extends PackageServiceProvider
 {
@@ -23,7 +22,7 @@ class ChatbotPluginServiceProvider extends PackageServiceProvider
     {
         $package
             ->name(static::$name)
-            ->hasConfigFile('chatbot')
+            ->hasConfigFile(['chatbot', 'assistant'])
             ->hasViews()
             ->hasMigrations([
                 'create_chatbots_table',
@@ -34,13 +33,16 @@ class ChatbotPluginServiceProvider extends PackageServiceProvider
                 'create_chatbot_embeddings_table',
                 'create_chatbot_canned_responses_table',
                 'create_chatbot_knowledge_base_articles_table',
+                // Assistant Engine migrations
+                '2026_04_27_000001_create_assistant_threads_table',
+                '2026_04_27_000002_create_assistant_runs_table',
             ])
             ->publishesAssets();
     }
 
     public function packageRegistered(): void
     {
-        // Register services
+        // Chatbot services
         $this->app->singleton('chatbot.service', function ($app) {
             return new \TitanZero\FilamentChatbot\Services\ChatbotService();
         });
@@ -56,6 +58,10 @@ class ChatbotPluginServiceProvider extends PackageServiceProvider
         $this->app->singleton('chatbot.analytics', function ($app) {
             return new \TitanZero\FilamentChatbot\Services\ChatbotAnalyticsService();
         });
+
+        // Assistant Engine services
+        $this->app->singleton(AssistantService::class);
+        $this->app->singleton(RunProcessorService::class);
     }
 
     public function packageBooted(): void
@@ -66,17 +72,20 @@ class ChatbotPluginServiceProvider extends PackageServiceProvider
             Js::make('chatbot-scripts', __DIR__ . '/../resources/js/chatbot.js'),
         ], package: 'titanzero/filament-chatbot-plugin');
 
-        // Register Filament plugin with dashboard
-        if (class_exists(\Filament\Facades\Filament::class)) {
-            \Filament\Facades\Filament::registerPlugin(
-                \TitanZero\FilamentChatbot\Filament\ChatbotPlugin::make()
-            );
+        // Register Livewire component for the AI assistant sidebar
+        if (class_exists(Livewire::class)) {
+            Livewire::component('chatbot-assistant-sidebar', AssistantSidebar::class);
         }
 
-        // Publish config
+        // Publish chatbot config
         $this->publishes([
             __DIR__ . '/../config/chatbot.php' => config_path('chatbot.php'),
         ], 'chatbot-config');
+
+        // Publish assistant config
+        $this->publishes([
+            __DIR__ . '/Config/assistant.php' => config_path('assistant.php'),
+        ], 'filament-assistant-config');
 
         // Publish assets
         $this->publishes([
