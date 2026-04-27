@@ -25,3 +25,6 @@ yarn-error.log
 /.zed
 package-lock.json
 composer.lock
+
+# Binary archives — must not be committed to source tree
+Modules/*.zip
