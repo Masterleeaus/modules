@@ -17,6 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Modules\GroundZero\Filament\Plugin\GroundZeroPlugin;
 
 /**
  * GROUND ZERO — Dispatch Control SPA Control Panel
@@ -45,6 +46,9 @@ class GroundZeroPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
             ])
             ->login()
+            ->plugins([
+                GroundZeroPlugin::make(),
+            ])
             ->discoverResources(
                 in: app_path('Filament/GroundZero/Resources'),
                 for: 'App\\Filament\\GroundZero\\Resources'

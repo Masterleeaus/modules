@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DriverLocation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\GroundZero\Services\GeofenceService;
 
 class LocationController extends Controller
 {
@@ -30,6 +31,13 @@ class LocationController extends Controller
         ]);
 
         TechnicianLocationUpdated::dispatch($location);
+
+        // Evaluate geofence boundaries for all active jobs assigned to this
+        // technician. This fires TechnicianArrived / TechnicianLeft events
+        // and auto-advances job status when the tech enters a job-site radius.
+        if (app()->bound(GeofenceService::class)) {
+            app(GeofenceService::class)->evaluate($location);
+        }
 
         return response()->json(['data' => $location], 201);
     }
