@@ -64,6 +64,50 @@ Settings routes are in `routes/settings.php` (all under `auth` middleware). Cont
 ### SSR
 SSR entry point is `resources/js/ssr.ts`. Run with `composer run dev:ssr` or build with `npm run build:ssr` then `php artisan inertia:start-ssr`.
 
+## Business Logic Layer
+
+### Rule: All business logic must live in Action or Service classes
+
+Business logic must **never** be duplicated across controllers and Filament resources. Instead, it must live in dedicated classes:
+
+- **Action classes** (`app/Actions/`) — single-purpose, named operations (e.g. `RecordPaymentAction`, `UpdateJobStatusAction`). Each exposes an `execute()` method.
+- **Service classes** (`app/Services/`) — stateless classes for domain queries or multi-step orchestration (e.g. `JobCalendarService`, `DispatchService`).
+
+Both HTTP controllers and Filament resources call the same Action/Service class. This ensures DRY consistency and makes the logic testable independently of the HTTP or Filament layers.
+
+```php
+// WRONG — logic duplicated in Filament resource
+Action::make('mark_paid')
+    ->action(function (Invoice $record) {
+        $record->update(['status' => 'paid', 'paid_at' => now()]);
+        Payment::create([...]);
+    });
+
+// CORRECT — Filament delegates to Action class
+Action::make('mark_paid')
+    ->action(function (Invoice $record) {
+        app(RecordPaymentAction::class)->execute($record, [...], auth()->id());
+    });
+```
+
+### Existing Action classes
+| Path | Purpose |
+|------|---------|
+| `app/Actions/Jobs/CreateJobAction.php` | Create a job + dispatch `JobCreated` |
+| `app/Actions/Jobs/UpdateJobStatusAction.php` | Transition status + timestamps + dispatch `JobStatusChanged` |
+| `app/Actions/Jobs/AssignTechnicianAction.php` | Assign or unassign a technician |
+| `app/Actions/Estimates/SendEstimateAction.php` | Mark estimate sent + dispatch `EstimateSent` |
+| `app/Actions/Estimates/ConvertEstimateToJobAction.php` | Convert accepted estimate to scheduled job |
+| `app/Actions/Invoices/GenerateFromJobAction.php` | Generate draft invoice from completed job |
+| `app/Actions/Invoices/RecordPaymentAction.php` | Record payment + update invoice balance/status |
+| `app/Actions/Invoices/VoidInvoiceAction.php` | Void an invoice |
+
+### Existing Service classes (domain queries)
+| Path | Purpose |
+|------|---------|
+| `app/Services/JobCalendarService.php` | FullCalendar event data for a date range |
+| `app/Services/DispatchService.php` | Technician locations, active jobs, and today's trail |
+
 ## Naming Conventions (Blueprint 32)
 
 ### Events

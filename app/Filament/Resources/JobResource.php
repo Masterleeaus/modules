@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Actions\Jobs\AssignTechnicianAction;
+use App\Actions\Jobs\UpdateJobStatusAction;
 use App\Filament\Resources\JobResource\Pages;
 use App\Filament\Resources\JobResource\RelationManagers\ChecklistItemsRelationManager;
 use App\Filament\Resources\JobResource\RelationManagers\LineItemsRelationManager;
@@ -217,6 +219,37 @@ class JobResource extends Resource
                     ->placeholder('All technicians'),
             ])
             ->recordActions([
+                Actions\Action::make('update_status')
+                    ->label('Update Status')
+                    ->icon('heroicon-o-arrow-path')
+                    ->form([
+                        Select::make('status')
+                            ->label('Status')
+                            ->options(Job::statuses())
+                            ->required(),
+                    ])
+                    ->action(function (Job $record, array $data): void {
+                        app(UpdateJobStatusAction::class)->execute($record, $data['status']);
+                    }),
+                Actions\Action::make('assign_technician')
+                    ->label('Assign')
+                    ->icon('heroicon-o-user')
+                    ->form([
+                        Select::make('assigned_to')
+                            ->label('Technician')
+                            ->options(fn () => User::where('organization_id', auth()->user()?->organization_id)
+                                ->role('technician')
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->all()
+                            )
+                            ->placeholder('Unassigned')
+                            ->nullable(),
+                    ])
+                    ->fillForm(fn (Job $record): array => ['assigned_to' => $record->assigned_to])
+                    ->action(function (Job $record, array $data): void {
+                        app(AssignTechnicianAction::class)->execute($record, $data['assigned_to']);
+                    }),
                 Actions\EditAction::make(),
             ])
             ->toolbarActions([

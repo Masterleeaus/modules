@@ -10,7 +10,6 @@ use App\Listeners\HandleJobCreatedSendEmailConfirmation;
 use App\Listeners\HandleJobCreatedSendSmsConfirmation;
 use App\Listeners\HandleJobStatusChangedSendNotifications;
 use App\Listeners\SendEstimateNotification;
-use App\Listeners\SendInvoiceNotification;
 use App\Services\GeocodingService;
 use App\Services\MessageDispatcher;
 use App\Services\SmsService;

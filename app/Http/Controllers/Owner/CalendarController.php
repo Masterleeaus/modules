@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
-use App\Models\Job;
-use App\Models\JobCrew;
+use App\Services\JobCalendarService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -20,44 +19,18 @@ class CalendarController extends Controller
     /**
      * Returns jobs as FullCalendar-compatible events for a given date range.
      */
-    public function events(Request $request): JsonResponse
+    public function events(Request $request, JobCalendarService $calendarService): JsonResponse
     {
         $request->validate([
             'start' => ['required', 'date'],
             'end'   => ['required', 'date'],
         ]);
 
-        $orgId = $request->user()->organization_id;
-
-        $jobs = Job::where('organization_id', $orgId)
-            ->whereNotNull('scheduled_at')
-            ->whereBetween('scheduled_at', [$request->start, $request->end])
-            ->with(['customer', 'jobType', 'assignedTechnician', 'crew.user'])
-            ->get();
-
-        $events = $jobs->map(fn (Job $job) => [
-            'id'              => $job->id,
-            'title'           => $job->customer
-                ? "{$job->customer->last_name}: {$job->title}"
-                : $job->title,
-            'start'           => $job->scheduled_at->toIso8601String(),
-            'end'             => $job->started_at && $job->completed_at
-                ? $job->completed_at->toIso8601String()
-                : null,
-            'url'             => "/owner/jobs/{$job->id}",
-            'backgroundColor' => $job->jobType?->color ?? '#6366f1',
-            'borderColor'     => $job->jobType?->color ?? '#6366f1',
-            'textColor'       => '#ffffff',
-            'extendedProps'   => [
-                'status'    => $job->status,
-                'customer'  => $job->customer?->full_name,
-                'technician' => $job->assignedTechnician?->name,
-                'crew'      => $job->crew->map(fn ($c) => [
-                    'name' => $c->user?->name,
-                    'role' => $c->role,
-                ]),
-            ],
-        ]);
+        $events = $calendarService->getEvents(
+            $request->user()->organization_id,
+            $request->start,
+            $request->end,
+        );
 
         return response()->json($events);
     }
