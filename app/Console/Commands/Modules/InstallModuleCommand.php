@@ -36,7 +36,7 @@ class InstallModuleCommand extends Command
             return self::FAILURE;
         }
 
-        if (str_contains($result->message, 'already installed')) {
+        if ($result->isAlreadyInstalled()) {
             $this->warn($result->message);
 
             return self::SUCCESS;

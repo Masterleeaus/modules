@@ -35,6 +35,7 @@ test('InstallResult::alreadyInstalled returns success without hook results', fun
     $result = InstallResult::alreadyInstalled('GroundZero');
 
     expect($result->success)->toBeTrue();
+    expect($result->isAlreadyInstalled())->toBeTrue();
     expect($result->message)->toContain('already installed');
 });
 

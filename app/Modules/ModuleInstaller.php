@@ -58,7 +58,8 @@ class ModuleInstaller
             [
                 'version'    => $version,
                 'status'     => 'installing',
-                'installed_by' => auth()->id(),
+                // auth()->id() returns null in console context — the column is nullable.
+                'installed_by' => auth()->id() ?? null,
             ],
         );
 
@@ -109,7 +110,11 @@ class ModuleInstaller
 
         $lifecycle = $this->loadLifecycle($moduleId);
         $upgradePaths = $lifecycle['upgrade'] ?? [];
-        $key = "{$fromVersion}→{$toVersion}";
+
+        // lifecycle.json may use either the Unicode arrow (→) or the ASCII
+        // arrow (->) as the separator between versions. Both are supported so
+        // that module authors can choose the style that reads best in JSON.
+        $key    = "{$fromVersion}→{$toVersion}";
         $altKey = "{$fromVersion}->{$toVersion}";
 
         $hooks = $upgradePaths[$key] ?? $upgradePaths[$altKey] ?? null;

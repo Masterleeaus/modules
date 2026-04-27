@@ -8,10 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::hasTable('module_installations')) {
-            return;
-        }
-
         Schema::create('module_installations', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('module_id');

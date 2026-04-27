@@ -53,6 +53,11 @@ class VerifyDatabaseTables extends BaseHook
     {
         $tables = [];
 
+        // NOTE: This is a best-effort, regex-based heuristic. It covers the
+        // common case of `Schema::create('table_name', ...)` but will miss
+        // tables created via variables, heredoc strings, or non-standard
+        // formatting. For authoritative table lists, declare them explicitly
+        // in the module's lifecycle.json under a `tables` key in future.
         foreach ($paths as $dir) {
             foreach (glob("{$dir}/*.php") ?: [] as $file) {
                 $content = file_get_contents($file);
