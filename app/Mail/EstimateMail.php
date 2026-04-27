@@ -27,7 +27,7 @@ class EstimateMail extends Mailable
         return new Content(
             view: 'mail.estimate',
             with: [
-                'url' => route('estimates.public', $this->estimate->token),
+                'url' => route('public.estimates.show', $this->estimate->token),
             ],
         );
     }
