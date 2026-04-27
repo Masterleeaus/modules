@@ -10,7 +10,7 @@ use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 
 /**
- * Verifies that the TenantScope global scope enforces organisation-level isolation
+ * Verifies that the TenantScope global scope enforces organization-level isolation
  * at the Eloquent query layer, without relying on controller-level scoping.
  */
 beforeEach(function () {
@@ -87,7 +87,7 @@ test('org A user cannot see org B items', function () {
 
 // ── Super-admin bypass ────────────────────────────────────────────────────────
 
-test('super_admin can query all organisations records without scope', function () {
+test('super_admin can query all organizations records without scope', function () {
     [, $myOrg, $otherOrg] = tenantOwner();
 
     $admin = User::factory()->create(['organization_id' => $myOrg->id]);
