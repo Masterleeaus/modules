@@ -54,6 +54,9 @@ class AdminPanelProvider extends PanelProvider
                             ->icon('heroicon-o-funnel'),
                     ])
             )
+            ->plugin(
+                \Modules\Accountings\Filament\Plugin\AccountingsPlugin::make()
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
