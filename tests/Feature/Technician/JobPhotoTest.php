@@ -40,12 +40,12 @@ test('technician can upload a photo to their job', function () {
     $file = UploadedFile::fake()->image('before.jpg', 800, 600);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/photos", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/photos", [
             'photo' => $file,
             'tag'   => 'before',
         ])
         ->assertCreated()
-        ->assertJsonPath('status', 'ok')
+        ->assertJsonPath('success', true)
         ->assertJsonPath('data.tag', 'before')
         ->assertJsonPath('data.disk', attachmentDisk());
 
@@ -64,7 +64,7 @@ test('photo is stored with after tag', function () {
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/photos", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/photos", [
             'photo' => UploadedFile::fake()->image('after.jpg'),
             'tag'   => 'after',
         ])
@@ -82,7 +82,7 @@ test('tag is optional — photo can be uploaded without a tag', function () {
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/photos", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/photos", [
             'photo' => UploadedFile::fake()->image('shot.jpg'),
         ])
         ->assertCreated()
@@ -99,7 +99,7 @@ test('upload rejects an invalid tag value', function () {
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/photos", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/photos", [
             'photo' => UploadedFile::fake()->image('shot.jpg'),
             'tag'   => 'during',
         ])
@@ -116,7 +116,7 @@ test('upload rejects a non-image file', function () {
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/photos", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/photos", [
             'photo' => UploadedFile::fake()->create('doc.pdf', 500, 'application/pdf'),
         ])
         ->assertUnprocessable();
@@ -133,7 +133,7 @@ test('technician cannot upload a photo to another technician\'s job', function (
     ]);
 
     $this->actingAs($technician)
-        ->postJson("/api/technician/jobs/{$job->id}/photos", [
+        ->postJson("/api/v1/technician/jobs/{$job->id}/photos", [
             'photo' => UploadedFile::fake()->image('x.jpg'),
         ])
         ->assertForbidden();
@@ -169,9 +169,9 @@ test('technician can delete a photo from their job', function () {
     Storage::disk($disk)->assertExists($path);
 
     $this->actingAs($technician)
-        ->deleteJson("/api/technician/jobs/{$job->id}/photos/{$attachment->id}")
+        ->deleteJson("/api/v1/technician/jobs/{$job->id}/photos/{$attachment->id}")
         ->assertOk()
-        ->assertJsonPath('status', 'ok');
+        ->assertJsonPath('success', true);
 
     expect($job->attachments()->count())->toBe(0);
     Storage::disk($disk)->assertMissing($path);
@@ -198,7 +198,7 @@ test('technician cannot delete a photo from another technician\'s job', function
     ]);
 
     $this->actingAs($technician)
-        ->deleteJson("/api/technician/jobs/{$job->id}/photos/{$attachment->id}")
+        ->deleteJson("/api/v1/technician/jobs/{$job->id}/photos/{$attachment->id}")
         ->assertForbidden();
 });
 
@@ -226,7 +226,7 @@ test('delete returns 404 when attachment does not belong to the job', function (
     ]);
 
     $this->actingAs($technician)
-        ->deleteJson("/api/technician/jobs/{$jobA->id}/photos/{$attachmentFromB->id}")
+        ->deleteJson("/api/v1/technician/jobs/{$jobA->id}/photos/{$attachmentFromB->id}")
         ->assertNotFound();
 });
 
@@ -247,7 +247,7 @@ test('api show response includes job attachments', function () {
     ]);
 
     $this->actingAs($technician)
-        ->getJson("/api/technician/jobs/{$job->id}")
+        ->getJson("/api/v1/technician/jobs/{$job->id}")
         ->assertOk()
         ->assertJsonCount(2, 'data.attachments');
 });

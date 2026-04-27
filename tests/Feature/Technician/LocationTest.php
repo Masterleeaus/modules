@@ -18,7 +18,7 @@ function locationSetup(): User
 }
 
 test('location endpoint requires authentication', function () {
-    $this->postJson('/api/technician/location', [
+    $this->postJson('/api/v1/technician/location', [
         'latitude'  => 40.7128,
         'longitude' => -74.0060,
     ])->assertUnauthorized();
@@ -29,7 +29,7 @@ test('technician can post a location update', function () {
     $user = locationSetup();
 
     $this->actingAs($user)
-        ->postJson('/api/technician/location', [
+        ->postJson('/api/v1/technician/location', [
             'latitude'  => 40.7128,
             'longitude' => -74.0060,
             'heading'   => 180.5,
@@ -52,7 +52,7 @@ test('location update fires TechnicianLocationUpdated broadcast event', function
     $user = locationSetup();
 
     $this->actingAs($user)
-        ->postJson('/api/technician/location', [
+        ->postJson('/api/v1/technician/location', [
             'latitude'  => 34.0522,
             'longitude' => -118.2437,
         ])
@@ -67,7 +67,7 @@ test('location update validates latitude range', function () {
     $user = locationSetup();
 
     $this->actingAs($user)
-        ->postJson('/api/technician/location', [
+        ->postJson('/api/v1/technician/location', [
             'latitude'  => 200,
             'longitude' => -74.0060,
         ])
@@ -78,7 +78,7 @@ test('location update validates longitude range', function () {
     $user = locationSetup();
 
     $this->actingAs($user)
-        ->postJson('/api/technician/location', [
+        ->postJson('/api/v1/technician/location', [
             'latitude'  => 40.7128,
             'longitude' => 200,
         ])
@@ -90,7 +90,7 @@ test('location update uses current time when recorded_at omitted', function () {
     $user = locationSetup();
 
     $this->actingAs($user)
-        ->postJson('/api/technician/location', [
+        ->postJson('/api/v1/technician/location', [
             'latitude'  => 40.7128,
             'longitude' => -74.0060,
         ])

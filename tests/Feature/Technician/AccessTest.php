@@ -29,7 +29,7 @@ test('unauthenticated user is redirected from technician jobs list', function ()
 });
 
 test('unauthenticated user is blocked from api jobs today', function () {
-    $this->getJson('/api/technician/jobs/today')->assertUnauthorized();
+    $this->getJson('/api/v1/technician/jobs/today')->assertUnauthorized();
 });
 
 // ── Role gate: non-technician roles are blocked ───────────────────────────────
@@ -57,7 +57,7 @@ test('user with no role cannot access technician dashboard', function () {
 
 test('owner role cannot access technician api', function () {
     [$user] = techUser('owner');
-    $this->actingAs($user)->getJson('/api/technician/jobs/today')->assertForbidden();
+    $this->actingAs($user)->getJson('/api/v1/technician/jobs/today')->assertForbidden();
 });
 
 // ── Role gate: technician role is allowed ─────────────────────────────────────

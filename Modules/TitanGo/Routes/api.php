@@ -7,7 +7,7 @@ use Modules\TitanGo\Http\Controllers\TechnicianMediaController;
 use Modules\TitanGo\Http\Controllers\TechnicianSyncController;
 
 Route::middleware(['auth', 'role:technician'])
-    ->prefix('api/technician')
+    ->prefix('api/v1/technician')
     ->name('technician.')
     ->group(function () {
         // ── Job read ──────────────────────────────────────────────────────────

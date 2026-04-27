@@ -4,6 +4,7 @@ namespace Modules\TitanGo\Http\Controllers;
 
 use App\Events\JobStatusChanged;
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use App\Models\Job;
 use App\Models\JobChecklistItem;
 use App\Models\JobLineItem;
@@ -33,8 +34,8 @@ class TechnicianSyncController extends Controller
     public function batch(Request $request): JsonResponse
     {
         $request->validate([
-            'mutations'         => ['required', 'array', 'min:1', 'max:200'],
-            'mutations.*.type'  => ['required', 'string'],
+            'mutations'          => ['required', 'array', 'min:1', 'max:200'],
+            'mutations.*.type'   => ['required', 'string'],
             'mutations.*.job_id' => ['required', 'integer'],
         ]);
 
@@ -57,10 +58,10 @@ class TechnicianSyncController extends Controller
 
         $hasErrors = collect($results)->contains('status', 'error');
 
-        return response()->json([
+        return ApiResponse::success([
             'status'  => $hasErrors ? 'partial' : 'ok',
             'results' => $results,
-        ], $hasErrors ? 207 : 200);
+        ], [], $hasErrors ? 207 : 200);
     }
 
     // -------------------------------------------------------------------------
