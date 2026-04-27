@@ -25,23 +25,68 @@ interface Technician {
     email: string;
 }
 
+interface TemplateEntry {
+    subject: string | null;
+    body: string;
+    active: boolean;
+}
+
+interface Branding {
+    brand_color: string | null;
+    customer_facing_name: string | null;
+    logo_path: string | null;
+}
+
+interface StepConfig {
+    label: string;
+    required: boolean;
+}
+
 const props = defineProps<{
     company: Company;
     job_types: JobType[];
     technicians: Technician[];
+    templates: Record<string, TemplateEntry>;
+    branding: Branding;
+    setup_completed_steps: string[];
+    steps: Record<string, StepConfig>;
+    template_events: Record<string, string>;
+    template_variables: Record<string, string>;
 }>();
 
 // ── Wizard step state ─────────────────────────────────────────────────────────
 
-const step = ref<1 | 2 | 3>(1);
-const steps = [
-    { id: 1, label: 'Company Info' },
-    { id: 2, label: 'Job Types' },
-    { id: 3, label: 'Technicians' },
-] as const;
+const STEP_KEYS = ['company', 'job_types', 'technicians', 'templates', 'branding', 'payment'] as const;
+type StepKey = typeof STEP_KEYS[number];
+
+// Find the first incomplete step to resume from
+function firstIncompleteStep(): number {
+    for (let i = 0; i < STEP_KEYS.length; i++) {
+        if (!props.setup_completed_steps.includes(STEP_KEYS[i])) {
+            return i + 1;
+        }
+    }
+    return STEP_KEYS.length + 1; // all done
+}
+
+const step = ref<number>(firstIncompleteStep());
+
+const stepLabels = [
+    'Company Details',
+    'Service Types',
+    'Team Members',
+    'Notifications',
+    'Branding',
+    'Payment',
+];
+
+function isStepCompleted(idx: number): boolean {
+    return props.setup_completed_steps.includes(STEP_KEYS[idx - 1]);
+}
 
 const canFinish = computed(() => {
-    return !!props.company.name && props.job_types.length > 0 && props.technicians.length > 0;
+    const required = ['company', 'job_types', 'technicians'];
+    return required.every(s => props.setup_completed_steps.includes(s));
 });
 
 // ── Step 1: Company form ──────────────────────────────────────────────────────
@@ -104,6 +149,112 @@ function addTechnician() {
     });
 }
 
+// ── Step 4: Notification templates ───────────────────────────────────────────
+
+interface TemplateFormEntry {
+    event: string;
+    channel: string;
+    subject: string;
+    body: string;
+    is_active: boolean;
+}
+
+function defaultTemplates(): TemplateFormEntry[] {
+    const defaults: Record<string, Record<string, string>> = {
+        job_scheduled: {
+            email: 'Hi {{customer_name}}, your {{job_title}} is scheduled for {{job_date}}. Your technician will be {{technician_name}}. — {{company_name}}',
+            sms:   'Hi {{customer_name}}, your {{job_title}} is confirmed for {{job_date}}. Tech: {{technician_name}}. — {{company_name}}',
+        },
+        job_reminder: {
+            email: 'Reminder: Your {{job_title}} is tomorrow, {{job_date}}. Technician: {{technician_name}}. — {{company_name}}',
+            sms:   'Reminder: {{job_title}} tomorrow at {{job_date}}. Tech: {{technician_name}}. — {{company_name}}',
+        },
+        en_route: {
+            email: '{{technician_name}} is on the way for your {{job_title}}! — {{company_name}}',
+            sms:   '{{technician_name}} is en route for your {{job_title}}! — {{company_name}}',
+        },
+        job_completed: {
+            email: 'Your {{job_title}} is complete. Thank you for choosing {{company_name}}!',
+            sms:   '{{job_title}} complete. Thanks for choosing {{company_name}}!',
+        },
+    };
+
+    const result: TemplateFormEntry[] = [];
+    for (const event of Object.keys(defaults)) {
+        for (const channel of ['email', 'sms']) {
+            const key = `${event}.${channel}`;
+            const existing = props.templates[key];
+            result.push({
+                event,
+                channel,
+                subject:   existing?.subject ?? (channel === 'email' ? `Job Update – {{job_title}}` : ''),
+                body:      existing?.body ?? defaults[event][channel],
+                is_active: existing?.active ?? true,
+            });
+        }
+    }
+    return result;
+}
+
+const templatesForm = useForm({
+    templates: defaultTemplates(),
+});
+
+function saveTemplates() {
+    templatesForm.post('/owner/setup/templates', {
+        preserveScroll: true,
+        onSuccess: () => { step.value = 5; },
+    });
+}
+
+function skipTemplates() {
+    router.post('/owner/setup/skip', { step: 'templates' }, {
+        preserveScroll: true,
+        onSuccess: () => { step.value = 5; },
+    });
+}
+
+// ── Step 5: Branding ─────────────────────────────────────────────────────────
+
+const brandingForm = useForm({
+    brand_color:          props.branding.brand_color ?? '#3b82f6',
+    customer_facing_name: props.branding.customer_facing_name ?? '',
+});
+
+function saveBranding() {
+    brandingForm.post('/owner/setup/branding', {
+        preserveScroll: true,
+        onSuccess: () => { step.value = 6; },
+    });
+}
+
+function skipBranding() {
+    router.post('/owner/setup/skip', { step: 'branding' }, {
+        preserveScroll: true,
+        onSuccess: () => { step.value = 6; },
+    });
+}
+
+// ── Step 6: Payment ───────────────────────────────────────────────────────────
+
+const paymentProcessing = ref(false);
+
+function skipPayment() {
+    paymentProcessing.value = true;
+    router.post('/owner/setup/skip', { step: 'payment' }, {
+        preserveScroll: true,
+        onFinish: () => { paymentProcessing.value = false; },
+    });
+}
+
+function markPaymentDone() {
+    paymentProcessing.value = true;
+    router.post('/owner/setup/payment', {}, {
+        preserveScroll: true,
+        onFinish: () => { paymentProcessing.value = false; },
+    });
+}
+
 // ── Finish ────────────────────────────────────────────────────────────────────
 
 const finishing = ref(false);
@@ -130,30 +281,35 @@ function finish() {
         <div class="w-full max-w-2xl mb-8">
             <ol class="flex items-center gap-0">
                 <li
-                    v-for="(s, idx) in steps"
-                    :key="s.id"
+                    v-for="(label, idx) in stepLabels"
+                    :key="idx"
                     class="flex flex-1 items-center"
                 >
-                    <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        class="flex items-center gap-2 focus:outline-none"
+                        @click="isStepCompleted(idx + 1) ? (step = idx + 1) : undefined"
+                        :title="isStepCompleted(idx + 1) ? `Revisit: ${label}` : label"
+                    >
                         <div
                             class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold border-2 transition-colors"
-                            :class="step > s.id
-                                ? 'bg-green-600 border-green-600 text-white'
-                                : step === s.id
+                            :class="isStepCompleted(idx + 1)
+                                ? 'bg-green-600 border-green-600 text-white cursor-pointer'
+                                : step === idx + 1
                                     ? 'bg-slate-900 border-slate-900 text-white'
                                     : 'border-slate-300 text-slate-400'"
                         >
-                            <svg v-if="step > s.id" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <svg v-if="isStepCompleted(idx + 1)" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.42 0l-3.5-3.5a1 1 0 111.42-1.42L8.5 12.08l6.79-6.79a1 1 0 011.414 0z" clip-rule="evenodd" />
                             </svg>
-                            <span v-else>{{ s.id }}</span>
+                            <span v-else>{{ idx + 1 }}</span>
                         </div>
                         <span
-                            class="hidden sm:inline text-sm font-medium"
-                            :class="step === s.id ? 'text-slate-900' : 'text-slate-400'"
-                        >{{ s.label }}</span>
-                    </div>
-                    <div v-if="idx < steps.length - 1" class="flex-1 h-0.5 mx-3" :class="step > s.id ? 'bg-green-500' : 'bg-slate-200'" />
+                            class="hidden sm:inline text-xs font-medium"
+                            :class="step === idx + 1 ? 'text-slate-900' : (isStepCompleted(idx + 1) ? 'text-green-700' : 'text-slate-400')"
+                        >{{ label }}</span>
+                    </button>
+                    <div v-if="idx < stepLabels.length - 1" class="flex-1 h-0.5 mx-2" :class="isStepCompleted(idx + 1) ? 'bg-green-500' : 'bg-slate-200'" />
                 </li>
             </ol>
         </div>
@@ -173,7 +329,7 @@ function finish() {
                             v-model="companyForm.name"
                             type="text"
                             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-                            placeholder="Acme HVAC Services"
+                            placeholder="Acme Services"
                             required
                         />
                         <p v-if="companyForm.errors.name" class="mt-1 text-xs text-rose-600">{{ companyForm.errors.name }}</p>
@@ -183,6 +339,7 @@ function finish() {
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
                             <input v-model="companyForm.email" type="email" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500" placeholder="info@company.com" />
+                            <p v-if="companyForm.errors.email" class="mt-1 text-xs text-rose-600">{{ companyForm.errors.email }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
@@ -225,7 +382,7 @@ function finish() {
             <!-- ── Step 2: Job Types ─────────────────────────────────────────── -->
             <div v-if="step === 2">
                 <h2 class="text-lg font-semibold text-slate-800 mb-1">Service / Job Types</h2>
-                <p class="text-sm text-slate-500 mb-6">Add the types of work your team performs (e.g. HVAC, Plumbing, Electrical).</p>
+                <p class="text-sm text-slate-500 mb-6">Add the types of work your team performs (e.g. Regular Clean, Deep Clean, End of Lease).</p>
 
                 <!-- Existing job types -->
                 <ul v-if="job_types.length > 0" class="mb-5 space-y-2">
@@ -257,7 +414,7 @@ function finish() {
                             v-model="jobTypeForm.name"
                             type="text"
                             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-                            placeholder="HVAC Service"
+                            placeholder="Regular Clean"
                             required
                         />
                     </div>
@@ -374,15 +531,216 @@ function finish() {
                     <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="step = 2">← Back</button>
                     <button
                         type="button"
-                        :disabled="!canFinish || finishing"
-                        class="rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-600 disabled:opacity-50 transition-colors"
-                        @click="finish"
+                        :disabled="technicians.length === 0"
+                        class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 disabled:opacity-50 transition-colors"
+                        @click="step = 4"
                     >
-                        {{ finishing ? 'Finishing…' : 'Finish Setup ✓' }}
+                        Continue →
                     </button>
                 </div>
             </div>
 
+            <!-- ── Step 4: Notification Templates ────────────────────────────── -->
+            <div v-if="step === 4">
+                <div class="flex items-start justify-between mb-1">
+                    <h2 class="text-lg font-semibold text-slate-800">Notification Templates</h2>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">Optional</span>
+                </div>
+                <p class="text-sm text-slate-500 mb-6">Customise the SMS and email messages sent to your customers. Use <code class="text-xs bg-slate-100 px-1 rounded">{{variable}}</code> placeholders.</p>
+
+                <!-- Available variables -->
+                <div class="mb-5 rounded-lg bg-slate-50 border border-slate-200 px-4 py-3">
+                    <p class="text-xs font-semibold text-slate-600 mb-2">Available variables:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span v-for="(desc, varName) in template_variables" :key="varName" class="text-xs bg-white border border-slate-200 rounded px-2 py-0.5" :title="desc">{{ varName }}</span>
+                    </div>
+                </div>
+
+                <form @submit.prevent="saveTemplates" class="space-y-6">
+                    <div v-for="(eventLabel, eventKey) in template_events" :key="eventKey" class="rounded-lg border border-slate-200 overflow-hidden">
+                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                            <p class="text-sm font-semibold text-slate-700">{{ eventLabel }}</p>
+                        </div>
+                        <div class="divide-y divide-slate-100">
+                            <div
+                                v-for="(tpl, tplIdx) in templatesForm.templates.filter(t => t.event === eventKey)"
+                                :key="`${eventKey}-${tpl.channel}`"
+                                class="px-4 py-3 space-y-2"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium uppercase tracking-wide text-slate-500">{{ tpl.channel === 'email' ? '📧 Email' : '💬 SMS' }}</span>
+                                    <label class="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer">
+                                        <input type="checkbox" v-model="tpl.is_active" class="rounded" />
+                                        Active
+                                    </label>
+                                </div>
+                                <div v-if="tpl.channel === 'email'">
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Subject</label>
+                                    <input v-model="tpl.subject" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Message body</label>
+                                    <textarea v-model="tpl.body" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 resize-none" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between pt-2">
+                        <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="step = 3">← Back</button>
+                        <div class="flex gap-3">
+                            <button
+                                type="button"
+                                class="text-sm text-slate-500 hover:text-slate-700 underline"
+                                @click="skipTemplates"
+                            >
+                                Skip for now
+                            </button>
+                            <button
+                                type="submit"
+                                :disabled="templatesForm.processing"
+                                class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 disabled:opacity-50 transition-colors"
+                            >
+                                Save &amp; Continue →
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ── Step 5: Branding ──────────────────────────────────────────── -->
+            <div v-if="step === 5">
+                <div class="flex items-start justify-between mb-1">
+                    <h2 class="text-lg font-semibold text-slate-800">Branding</h2>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">Optional</span>
+                </div>
+                <p class="text-sm text-slate-500 mb-6">Set your brand colour and the name shown to customers on invoices and portals.</p>
+
+                <form @submit.prevent="saveBranding" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Customer-facing name</label>
+                        <input
+                            v-model="brandingForm.customer_facing_name"
+                            type="text"
+                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                            placeholder="e.g. Acme Cleaning Co."
+                        />
+                        <p class="mt-1 text-xs text-slate-400">Leave blank to use your company name.</p>
+                        <p v-if="brandingForm.errors.customer_facing_name" class="mt-1 text-xs text-rose-600">{{ brandingForm.errors.customer_facing_name }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Brand colour</label>
+                        <div class="flex items-center gap-3">
+                            <div class="flex flex-wrap gap-2">
+                                <span
+                                    v-for="c in PRESET_COLORS"
+                                    :key="c"
+                                    class="h-8 w-8 rounded-full cursor-pointer border-2 transition-all"
+                                    :class="brandingForm.brand_color === c ? 'border-slate-900 scale-110' : 'border-transparent hover:border-slate-300'"
+                                    :style="{ background: c }"
+                                    @click="brandingForm.brand_color = c"
+                                />
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input
+                                    v-model="brandingForm.brand_color"
+                                    type="color"
+                                    class="h-8 w-10 rounded cursor-pointer border border-slate-300 p-0.5"
+                                />
+                                <span class="text-sm text-slate-500 font-mono">{{ brandingForm.brand_color }}</span>
+                            </div>
+                        </div>
+                        <p v-if="brandingForm.errors.brand_color" class="mt-1 text-xs text-rose-600">{{ brandingForm.errors.brand_color }}</p>
+                    </div>
+
+                    <div class="flex justify-between pt-2">
+                        <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="step = 4">← Back</button>
+                        <div class="flex gap-3">
+                            <button
+                                type="button"
+                                class="text-sm text-slate-500 hover:text-slate-700 underline"
+                                @click="skipBranding"
+                            >
+                                Skip for now
+                            </button>
+                            <button
+                                type="submit"
+                                :disabled="brandingForm.processing"
+                                class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 disabled:opacity-50 transition-colors"
+                            >
+                                Save &amp; Continue →
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ── Step 6: Payment Setup ──────────────────────────────────────── -->
+            <div v-if="step === 6">
+                <div class="flex items-start justify-between mb-1">
+                    <h2 class="text-lg font-semibold text-slate-800">Payment Setup</h2>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">Optional</span>
+                </div>
+                <p class="text-sm text-slate-500 mb-6">Connect a Stripe account to accept online payments from customers via invoice links.</p>
+
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center space-y-4">
+                    <div class="flex justify-center">
+                        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600">Connect your Stripe account to start accepting card payments. You can also do this later from <strong>Settings → Integrations</strong>.</p>
+                    <a
+                        href="/owner/settings/integrations"
+                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors"
+                        @click.prevent="markPaymentDone"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Set Up Stripe Payments
+                    </a>
+                </div>
+
+                <div class="flex justify-between pt-6">
+                    <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="step = 5">← Back</button>
+                    <div class="flex gap-3 items-center">
+                        <button
+                            type="button"
+                            class="text-sm text-slate-500 hover:text-slate-700 underline"
+                            :disabled="paymentProcessing"
+                            @click="skipPayment"
+                        >
+                            Skip for now
+                        </button>
+                        <button
+                            v-if="canFinish"
+                            type="button"
+                            :disabled="finishing"
+                            class="rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-600 disabled:opacity-50 transition-colors"
+                            @click="finish"
+                        >
+                            {{ finishing ? 'Finishing…' : 'Finish Setup ✓' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Finish button when all required steps are done but not on last step -->
+        <div v-if="canFinish && step < 6" class="w-full max-w-2xl mt-4 flex justify-end">
+            <button
+                type="button"
+                :disabled="finishing"
+                class="rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-600 disabled:opacity-50 transition-colors"
+                @click="finish"
+            >
+                {{ finishing ? 'Finishing…' : 'Finish Setup ✓' }}
+            </button>
         </div>
 
         <p class="mt-6 text-xs text-slate-400">
