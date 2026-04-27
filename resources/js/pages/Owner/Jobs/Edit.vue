@@ -21,6 +21,7 @@ const props = defineProps<{
     customers: Customer[];
     jobTypes: JobType[];
     technicians: Technician[];
+    is_solo: boolean;
 }>();
 
 // datetime-local input expects "YYYY-MM-DDTHH:mm"
@@ -68,6 +69,7 @@ function submit() {
                         :customers="customers"
                         :job-types="jobTypes"
                         :technicians="technicians"
+                        :is-solo="is_solo"
                     />
 
                     <div class="mt-6 flex items-center gap-3">

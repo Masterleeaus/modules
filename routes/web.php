@@ -23,6 +23,7 @@ use App\Http\Controllers\Platform\DashboardController as PlatformDashboardContro
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\PublicEstimateController;
 use Illuminate\Support\Facades\Route;
+use Modules\TitanSolo\Http\Middleware\EnforceSoloMode;
 
 // Root: guests see the marketing page; authenticated users go to their dashboard
 Route::get('/', function () {
@@ -95,7 +96,8 @@ Route::middleware(['auth', 'verified', 'role:owner|admin', 'subscription', 'setu
     ->name('owner.')
     ->group(function () {
         Route::get('/team', [TeamController::class, 'index'])->name('team.index');
-        Route::post('/team', [TeamController::class, 'store'])->name('team.store');
+        // Inviting additional technicians is blocked in solo mode
+        Route::post('/team', [TeamController::class, 'store'])->middleware(EnforceSoloMode::class)->name('team.store');
         Route::patch('/team/{user}', [TeamController::class, 'update'])->name('team.update');
         Route::delete('/team/{user}', [TeamController::class, 'destroy'])->name('team.destroy');
     });
@@ -125,9 +127,9 @@ Route::middleware(['auth', 'verified', 'role:owner|admin|dispatcher|bookkeeper',
         Route::post('/estimates/{estimate}/send', [EstimateController::class, 'send'])->name('estimates.send');
         Route::post('/estimates/{estimate}/convert', [EstimateController::class, 'convertToJob'])->name('estimates.convert');
 
-        Route::get('/dispatch', [DispatchController::class, 'index'])->name('dispatch');
-        Route::get('/dispatch/technicians', [DispatchController::class, 'technicianLocations'])->name('dispatch.technicians');
-        Route::get('/dispatch/technicians/{user}/trail', [DispatchController::class, 'technicianTrail'])->name('dispatch.trail');
+        Route::get('/dispatch', [DispatchController::class, 'index'])->middleware(EnforceSoloMode::class)->name('dispatch');
+        Route::get('/dispatch/technicians', [DispatchController::class, 'technicianLocations'])->middleware(EnforceSoloMode::class)->name('dispatch.technicians');
+        Route::get('/dispatch/technicians/{user}/trail', [DispatchController::class, 'technicianTrail'])->middleware(EnforceSoloMode::class)->name('dispatch.trail');
 
         Route::get('/billing', [BillingController::class, 'index'])->name('billing');
 
@@ -142,6 +144,9 @@ Route::middleware(['auth', 'verified', 'role:owner|admin|dispatcher|bookkeeper',
         Route::post('/settings/company', [SettingsController::class, 'updateCompany'])->name('settings.company.update');
         Route::get('/settings/integrations', [SettingsController::class, 'integrations'])->name('settings.integrations');
         Route::post('/settings/integrations', [SettingsController::class, 'updateIntegrations'])->name('settings.integrations.update');
+        // Operation mode (Solo ↔ Team)
+        Route::get('/settings/mode', [SettingsController::class, 'mode'])->name('settings.mode');
+        Route::post('/settings/mode', [SettingsController::class, 'updateMode'])->name('settings.mode.update');
         Route::resource('invoices', InvoiceController::class)->only(['index', 'show', 'destroy']);
         Route::post('/jobs/{job}/invoice', [InvoiceController::class, 'generateFromJob'])->name('jobs.invoice.generate');
         Route::post('/invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');

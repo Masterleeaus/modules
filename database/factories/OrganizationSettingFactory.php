@@ -31,6 +31,7 @@ class OrganizationSettingFactory extends Factory
             'customer_facing_name'   => null,
             'setup_completed_steps'  => null,
             'setup_complete'         => false,
+            'mode'                   => 'team',
         ];
     }
 }

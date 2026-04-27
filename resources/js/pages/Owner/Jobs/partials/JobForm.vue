@@ -28,6 +28,7 @@ const props = defineProps<{
     customers: Customer[];
     jobTypes: JobType[];
     technicians: Technician[];
+    isSolo?: boolean;
 }>();
 
 const selectedCustomerProperties = computed(() => {
@@ -102,7 +103,7 @@ function onCustomerChange() {
                     <option v-for="t in jobTypes" :key="t.id" :value="t.id">{{ t.name }}</option>
                 </select>
             </div>
-            <div>
+            <div v-if="!isSolo">
                 <label for="assigned_to" class="block text-sm font-medium text-slate-700">Assign To</label>
                 <select
                     id="assigned_to"

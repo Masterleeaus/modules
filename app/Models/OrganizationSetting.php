@@ -31,6 +31,8 @@ class OrganizationSetting extends Model
         // Setup wizard progress
         'setup_completed_steps',
         'setup_complete',
+        // Operation mode
+        'mode',
         // Integrations
         'stripe_secret_key',
         'stripe_publishable_key',
@@ -57,6 +59,7 @@ class OrganizationSetting extends Model
             'default_tax_rate'      => 'decimal:4',
             'setup_completed_steps' => 'array',
             'setup_complete'        => 'boolean',
+            'mode'                  => 'string',
             'stripe_secret_key'     => 'encrypted',
             'stripe_webhook_secret' => 'encrypted',
             'twilio_auth_token'     => 'encrypted',

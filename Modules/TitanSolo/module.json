@@ -1,11 +1,11 @@
 {
     "name": "TitanSolo",
     "alias": "titansolo",
-    "description": "",
-    "keywords": [],
+    "description": "Single-operator simplified UI — hides multi-technician complexity for sole traders.",
+    "keywords": ["solo", "single-operator", "simplified"],
     "priority": 0,
     "providers": [
-        
+        "Modules\\TitanSolo\\Providers\\TitanSoloServiceProvider"
     ],
     "files": []
 }

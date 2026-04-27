@@ -15,6 +15,7 @@ const props = defineProps<{
     jobTypes: JobType[];
     technicians: Technician[];
     preselect: { customer_id?: string | number; property_id?: string | number };
+    is_solo: boolean;
 }>();
 
 const form = useForm({
@@ -54,6 +55,7 @@ function submit() {
                         :customers="customers"
                         :job-types="jobTypes"
                         :technicians="technicians"
+                        :is-solo="is_solo"
                     />
 
                     <div class="mt-6 flex items-center gap-3">

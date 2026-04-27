@@ -13,6 +13,7 @@ const appName = computed(() => platform.value.app_name ?? 'TITAN ZERO');
 const logoUrl = computed(() => platform.value.logo_url ?? '/titan-zero-logo.png');
 const sidebarOpen = ref(false);
 const isPlatformAdmin = computed(() => ((page.props.auth as any)?.roles ?? []).includes('super_admin'));
+const isSoloMode = computed(() => (page.props as any).organization?.mode === 'solo');
 
 function navClass(href: string): string {
     return currentUrl.value.startsWith(href)
@@ -41,26 +42,49 @@ function navClass(href: string): string {
             </div>
 
             <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm overflow-y-auto">
-                <Link href="/owner/dashboard" :class="navClass('/owner/dashboard')">Dashboard</Link>
-                <Link href="/owner/customers" :class="navClass('/owner/customers')">Customers</Link>
-                <Link href="/owner/jobs" :class="navClass('/owner/jobs')">Jobs</Link>
-                <Link href="/owner/calendar" :class="navClass('/owner/calendar')">Calendar</Link>
-                <Link href="/owner/estimates" :class="navClass('/owner/estimates')">Estimates</Link>
-                <Link href="/owner/invoices" :class="navClass('/owner/invoices')">Invoices</Link>
-                <Link href="/owner/billing" :class="navClass('/owner/billing')">Billing</Link>
-                <Link href="/owner/dispatch" :class="navClass('/owner/dispatch')">Dispatch</Link>
+                <!-- Solo mode: simplified nav -->
+                <template v-if="isSoloMode">
+                    <Link href="/owner/dashboard" :class="navClass('/owner/dashboard')">Dashboard</Link>
+                    <Link href="/owner/jobs" :class="navClass('/owner/jobs')">My Jobs</Link>
+                    <Link href="/owner/customers" :class="navClass('/owner/customers')">Customers</Link>
+                    <Link href="/owner/estimates" :class="navClass('/owner/estimates')">Estimates</Link>
+                    <Link href="/owner/invoices" :class="navClass('/owner/invoices')">Invoices</Link>
 
-                <div class="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-slate-500 font-semibold">Reports</div>
-                <Link href="/owner/reports/jobs-by-type" :class="navClass('/owner/reports/jobs-by-type')">Jobs by Type</Link>
-                <Link href="/owner/reports/job-profitability" :class="navClass('/owner/reports/job-profitability')">Job Profitability</Link>
-                <Link href="/owner/reports/technician-performance" :class="navClass('/owner/reports/technician-performance')">Technician Performance</Link>
+                    <div v-if="isPlatformAdmin" class="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-slate-500 font-semibold">Platform</div>
+                    <Link v-if="isPlatformAdmin" href="/platform/dashboard" :class="navClass('/platform/dashboard')">SaaS Admin</Link>
 
-                <div v-if="isPlatformAdmin" class="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-slate-500 font-semibold">Platform</div>
-                <Link v-if="isPlatformAdmin" href="/platform/dashboard" :class="navClass('/platform/dashboard')">SaaS Admin</Link>
+                    <div class="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-slate-500 font-semibold">Settings</div>
+                    <Link href="/owner/settings/company" :class="navClass('/owner/settings/company')">Company</Link>
+                    <Link href="/owner/settings/mode" :class="navClass('/owner/settings/mode')">Operation Mode</Link>
+                </template>
 
-                <div class="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-slate-500 font-semibold">Settings</div>
-                <Link href="/owner/settings/company" :class="navClass('/owner/settings/company')">Company</Link>
-                <Link href="/owner/settings/integrations" :class="navClass('/owner/settings/integrations')">Integrations</Link>
+                <!-- Team mode: full nav -->
+                <template v-else>
+                    <Link href="/owner/dashboard" :class="navClass('/owner/dashboard')">Dashboard</Link>
+                    <Link href="/owner/customers" :class="navClass('/owner/customers')">Customers</Link>
+                    <Link href="/owner/jobs" :class="navClass('/owner/jobs')">Jobs</Link>
+                    <Link href="/owner/calendar" :class="navClass('/owner/calendar')">Calendar</Link>
+                    <Link href="/owner/estimates" :class="navClass('/owner/estimates')">Estimates</Link>
+                    <Link href="/owner/invoices" :class="navClass('/owner/invoices')">Invoices</Link>
+                    <Link href="/owner/billing" :class="navClass('/owner/billing')">Billing</Link>
+                    <Link href="/owner/dispatch" :class="navClass('/owner/dispatch')">Dispatch</Link>
+
+                    <div class="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-slate-500 font-semibold">Team</div>
+                    <Link href="/owner/team" :class="navClass('/owner/team')">Team Members</Link>
+
+                    <div class="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-slate-500 font-semibold">Reports</div>
+                    <Link href="/owner/reports/jobs-by-type" :class="navClass('/owner/reports/jobs-by-type')">Jobs by Type</Link>
+                    <Link href="/owner/reports/job-profitability" :class="navClass('/owner/reports/job-profitability')">Job Profitability</Link>
+                    <Link href="/owner/reports/technician-performance" :class="navClass('/owner/reports/technician-performance')">Technician Performance</Link>
+
+                    <div v-if="isPlatformAdmin" class="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-slate-500 font-semibold">Platform</div>
+                    <Link v-if="isPlatformAdmin" href="/platform/dashboard" :class="navClass('/platform/dashboard')">SaaS Admin</Link>
+
+                    <div class="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-slate-500 font-semibold">Settings</div>
+                    <Link href="/owner/settings/company" :class="navClass('/owner/settings/company')">Company</Link>
+                    <Link href="/owner/settings/integrations" :class="navClass('/owner/settings/integrations')">Integrations</Link>
+                    <Link href="/owner/settings/mode" :class="navClass('/owner/settings/mode')">Operation Mode</Link>
+                </template>
             </nav>
 
             <div class="border-t border-slate-800 px-4 py-3">
@@ -96,6 +120,10 @@ function navClass(href: string): string {
                     </h1>
                 </div>
                 <div class="text-sm text-slate-600 flex items-center gap-3">
+                    <!-- Solo mode badge -->
+                    <span v-if="isSoloMode" class="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
+                        Solo Mode
+                    </span>
                     <slot name="header-actions" />
                 </div>
             </header>

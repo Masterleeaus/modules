@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\OrganizationSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Response;
 use Inertia\ResponseFactory;
 
@@ -131,5 +133,33 @@ class SettingsController extends Controller
         $settings->update($validated);
 
         return back()->with('success', 'Integration settings saved.');
+    }
+
+    // ─── Operation Mode Settings ───────────────────────────────────────────────
+
+    public function mode(Request $request): Response|ResponseFactory
+    {
+        $settings = $this->getOrCreateSettings($request->user()->organization_id);
+
+        return inertia('Owner/Settings/Mode', [
+            'mode' => $settings->mode ?? 'team',
+        ]);
+    }
+
+    public function updateMode(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'mode' => ['required', Rule::in(['solo', 'team'])],
+        ]);
+
+        $orgId    = $request->user()->organization_id;
+        $settings = $this->getOrCreateSettings($orgId);
+
+        $settings->update(['mode' => $validated['mode']]);
+
+        // Bust the cached mode so the nav adapts immediately
+        Cache::forget("org.{$orgId}.mode");
+
+        return back()->with('success', 'Operation mode updated.');
     }
 }

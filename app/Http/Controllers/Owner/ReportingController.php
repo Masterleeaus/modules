@@ -11,19 +11,27 @@ use App\Models\Job;
 use App\Models\JobType;
 use App\Models\OrganizationSetting;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Response;
 use Inertia\ResponseFactory;
+use Modules\TitanSolo\Services\SoloModeService;
 
 class ReportingController extends Controller
 {
     // ─── Dashboard ────────────────────────────────────────────────────────────
 
-    public function dashboard(Request $request): Response|ResponseFactory
+    public function dashboard(Request $request): Response|ResponseFactory|RedirectResponse
     {
         $orgId = $request->user()->organization_id;
+
+        // Solo mode gets a specialised, simplified dashboard
+        if (app(SoloModeService::class)->isSolo($orgId)) {
+            return $this->soloDashboard($request, $orgId);
+        }
+
         $today = Carbon::today();
         $weekStart = Carbon::now()->startOfWeek();
         $weekEnd   = Carbon::now()->endOfWeek();
@@ -65,6 +73,40 @@ class ReportingController extends Controller
                 'unassigned_jobs'     => $unassignedJobs,
             ],
             'onboarding_checklist' => $this->onboardingChecklist($orgId),
+        ]);
+    }
+
+    // ─── Solo Dashboard ───────────────────────────────────────────────────────
+
+    private function soloDashboard(Request $request, int $orgId): Response|ResponseFactory
+    {
+        $today   = Carbon::today();
+        $userId  = $request->user()->id;
+
+        $todayJobs = Job::where('organization_id', $orgId)
+            ->where('assigned_to', $userId)
+            ->whereDate('scheduled_at', $today)
+            ->whereNotIn('status', [Job::STATUS_CANCELLED])
+            ->with(['customer:id,first_name,last_name', 'property:id,address_line1,city,state'])
+            ->orderBy('scheduled_at')
+            ->get();
+
+        $openJobs = Job::where('organization_id', $orgId)
+            ->where('assigned_to', $userId)
+            ->whereNotIn('status', [Job::STATUS_COMPLETED, Job::STATUS_CANCELLED])
+            ->count();
+
+        $ar = Invoice::where('organization_id', $orgId)
+            ->whereIn('status', [Invoice::STATUS_SENT, Invoice::STATUS_PARTIAL, Invoice::STATUS_OVERDUE])
+            ->sum('balance_due');
+
+        return inertia('Solo/Dashboard', [
+            'today_jobs' => $todayJobs,
+            'stats'      => [
+                'jobs_today'          => $todayJobs->count(),
+                'open_jobs'           => $openJobs,
+                'accounts_receivable' => (float) $ar,
+            ],
         ]);
     }
 

@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Response;
 use Inertia\ResponseFactory;
+use Modules\TitanSolo\Services\SoloModeService;
 
 class JobController extends Controller
 {
@@ -67,7 +68,8 @@ class JobController extends Controller
 
     public function create(Request $request): Response|ResponseFactory
     {
-        $orgId = $request->user()->organization_id;
+        $orgId    = $request->user()->organization_id;
+        $isSolo   = app(SoloModeService::class)->isSolo($orgId);
 
         return inertia('Owner/Jobs/Create', [
             'customers' => Customer::where('organization_id', $orgId)
@@ -78,19 +80,29 @@ class JobController extends Controller
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'color']),
-            'technicians' => User::where('organization_id', $orgId)
+            'technicians' => $isSolo ? [] : User::where('organization_id', $orgId)
                 ->orderBy('name')
                 ->get(['id', 'name']),
             'statuses'   => Job::statuses(),
             'preselect'  => $request->only(['customer_id', 'property_id']),
+            'is_solo'    => $isSolo,
         ]);
     }
 
     public function store(StoreJobRequest $request): RedirectResponse
     {
+        $orgId   = $request->user()->organization_id;
+        $isSolo  = app(SoloModeService::class)->isSolo($orgId);
+        $payload = $request->validated();
+
+        // In solo mode, always auto-assign the job to the owner/operator
+        if ($isSolo) {
+            $payload['assigned_to'] = $request->user()->id;
+        }
+
         $job = app(CreateJobAction::class)->execute([
-            ...$request->validated(),
-            'organization_id' => $request->user()->organization_id,
+            ...$payload,
+            'organization_id' => $orgId,
         ]);
 
         return redirect()->route('owner.jobs.show', $job)
@@ -101,7 +113,8 @@ class JobController extends Controller
     {
         abort_unless($job->organization_id === $request->user()->organization_id, 403);
 
-        $orgId = $request->user()->organization_id;
+        $orgId  = $request->user()->organization_id;
+        $isSolo = app(SoloModeService::class)->isSolo($orgId);
 
         return inertia('Owner/Jobs/Edit', [
             'job'        => $job,
@@ -113,10 +126,11 @@ class JobController extends Controller
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'color']),
-            'technicians' => User::where('organization_id', $orgId)
+            'technicians' => $isSolo ? [] : User::where('organization_id', $orgId)
                 ->orderBy('name')
                 ->get(['id', 'name']),
             'statuses'   => Job::statuses(),
+            'is_solo'    => $isSolo,
         ]);
     }
 

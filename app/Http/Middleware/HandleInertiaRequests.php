@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\OrganizationSetting;
 use App\Models\PlatformSetting;
 use App\Services\PlanService;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $subscription = null;
         $planData = null;
+        $orgMode = 'team';
 
         if ($user && $user->organization_id) {
             $org         = $user->organization;
@@ -44,6 +46,12 @@ class HandleInertiaRequests extends Middleware
                 "org.{$orgId}.tech_count",
                 300,
                 fn () => $planService->technicianCount($org)
+            );
+
+            $orgMode = Cache::remember(
+                "org.{$orgId}.mode",
+                300,
+                fn () => OrganizationSetting::where('organization_id', $orgId)->value('mode') ?? 'team'
             );
 
             $techLimit    = PlanService::TECHNICIAN_LIMITS[$activePlan] ?? null;
@@ -109,6 +117,9 @@ class HandleInertiaRequests extends Middleware
             'subscription' => $subscription,
             'plan'         => $planData,
             'platform'     => $platformSettings,
+            'organization' => [
+                'mode' => $orgMode,
+            ],
         ];
     }
 }
