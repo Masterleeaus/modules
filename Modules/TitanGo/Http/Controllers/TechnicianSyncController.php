@@ -2,12 +2,14 @@
 
 namespace Modules\TitanGo\Http\Controllers;
 
+use App\Actions\Jobs\UpdateJobStatusAction;
 use App\Events\JobStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiResponse;
 use App\Models\Job;
 use App\Models\JobChecklistItem;
 use App\Models\JobLineItem;
+use App\Workflow\Exceptions\InvalidTransitionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -97,19 +99,7 @@ class TechnicianSyncController extends Controller
             throw new \InvalidArgumentException('Invalid status value.');
         }
 
-        $timestamps = match ($status) {
-            Job::STATUS_IN_PROGRESS => [
-                'arrived_at' => $job->arrived_at ?? now(),
-                'started_at' => $job->started_at ?? now(),
-            ],
-            Job::STATUS_COMPLETED => ['completed_at' => now()],
-            default => [],
-        };
-
-        $oldStatus = $job->status;
-        $job->update(['status' => $status, ...$timestamps]);
-
-        JobStatusChanged::dispatch($job->fresh(), $oldStatus, $status);
+        app(UpdateJobStatusAction::class)->execute($job, $status);
 
         return ['type' => 'status', 'job_id' => $job->id, 'status' => 'ok'];
     }
