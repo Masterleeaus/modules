@@ -533,7 +533,7 @@ function finish() {
                     <h2 class="text-lg font-semibold text-slate-800">Notification Templates</h2>
                     <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">Optional</span>
                 </div>
-                <p class="text-sm text-slate-500 mb-6">Customize the SMS and email messages sent to your customers. Use <code class="text-xs bg-slate-100 px-1 rounded">{{ '{{variable}}' }}</code> placeholders.</p>
+                <p class="text-sm text-slate-500 mb-6">Customize the SMS and email messages sent to your customers. Use <code v-pre class="text-xs bg-slate-100 px-1 rounded">{{variable}}</code> placeholders.</p>
 
                 <!-- Available variables -->
                 <div class="mb-5 rounded-lg bg-slate-50 border border-slate-200 px-4 py-3">

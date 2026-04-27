@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import OwnerLayout from '@/layouts/OwnerLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import type { Job } from '@/types';
+import type { Job, JobStatus } from '@/types';
 
 const props = defineProps<{
     job: Job;
@@ -38,7 +38,7 @@ function formatCurrency(val: string | number): string {
 }
 
 function changeStatus(newStatus: string) {
-    statusForm.status = newStatus as typeof statusForm.status;
+    statusForm.status = newStatus as JobStatus;
     statusForm.patch(`/owner/jobs/${props.job.id}/status`);
 }
 

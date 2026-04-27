@@ -291,7 +291,11 @@ export interface Payment {
     id: number;
     organization_id: number;
     invoice_id: number;
-    /** FK to users table; when `recordedBy` relation is loaded this becomes a UserRef object */
+    /**
+     * Holds the FK integer when the model is serialised without loading the relation.
+     * When `recordedBy()` is eager-loaded, Laravel replaces this key with the
+     * full UserRef object. Use `PaymentWithRecordedBy` when the relation is loaded.
+     */
     recorded_by: number | UserRef | null;
     amount: string;
     method: PaymentMethod;

@@ -68,7 +68,7 @@ const form = useForm({
 
 // Which tiers are included
 const activeTiers = reactive(new Set(
-    props.estimate ? props.estimate.packages?.map((p) => p.tier) ?? [] : ['good', 'better', 'best'],
+    props.estimate?.packages?.map((p) => p.tier) ?? ['good', 'better', 'best'],
 ));
 
 function toggleTier(tier: string) {
