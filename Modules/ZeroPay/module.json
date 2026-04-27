@@ -1,11 +1,11 @@
 {
     "name": "ZeroPay",
     "alias": "zeropay",
-    "description": "",
-    "keywords": [],
+    "description": "ZeroPay — invoicing, payments and cashflow Filament panel.",
+    "keywords": ["finance", "invoicing", "payments", "cashflow"],
     "priority": 0,
     "providers": [
-        
+        "Modules\\ZeroPay\\Providers\\FilamentServiceProvider"
     ],
     "files": []
 }

@@ -83,4 +83,5 @@ Pattern: `{Verb}{Entity}s` (plural) — e.g. `SendJobReminders`, `SendInvoiceRem
 
 ### Intentional Exceptions / Known Audit Items
 - `SendEstimateNotification` (Listener) — predates Blueprint 32; handles both email and SMS for the `EstimateSent` event. Rename to `HandleEstimateSentSendNotification` tracked separately.
+- `SendInvoiceNotification` (Listener) — predates Blueprint 32; handles both email and SMS for the `InvoiceSent` event. Rename to `HandleInvoiceSentSendNotification` tracked separately.
 - `SendJobReminders` (`jobs:send-reminders`) vs `DispatchJobReminders` (`jobs:dispatch-reminders`) — these are **not duplicates**. `SendJobReminders` directly sends via `MessageDispatcher`+`TemplateRenderer` (no deduplication). `DispatchJobReminders` dispatches `SendJobReminderJob` queue jobs with DB-column deduplication. Consolidation is tracked separately.

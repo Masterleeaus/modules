@@ -11,9 +11,11 @@ use App\Models\Customer;
 use App\Models\Job;
 use App\Models\Property;
 use App\Models\User;
+use emmanpbarrameda\FilamentTakePictureField\Forms\Components\TakePicture;
 use Filament\Actions;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\Section;
@@ -21,7 +23,6 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -43,7 +44,7 @@ class JobResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            \Filament\Schemas\Components\Section::make('Job Details')->schema([
+            Schemas\Components\Section::make('Job Details')->schema([
                 TextInput::make('title')
                     ->required()
                     ->maxLength(255)
@@ -71,8 +72,7 @@ class JobResource extends Resource
                     ->reactive(),
                 Select::make('job_type_id')
                     ->label('Job Type')
-                    ->relationship('jobType', 'name', fn (Builder $query) =>
-                        $query->where('organization_id', auth()->user()?->organization_id)
+                    ->relationship('jobType', 'name', fn (Builder $query) => $query->where('organization_id', auth()->user()?->organization_id)
                     )
                     ->preload()
                     ->searchable(),
@@ -101,7 +101,7 @@ class JobResource extends Resource
                     ->seconds(false),
             ])->columns(2),
 
-            \Filament\Schemas\Components\Section::make('Notes')->schema([
+            Schemas\Components\Section::make('Notes')->schema([
                 Textarea::make('description')
                     ->rows(3)
                     ->columnSpanFull(),
@@ -118,6 +118,31 @@ class JobResource extends Resource
                     ->rows(3)
                     ->columnSpanFull(),
             ]),
+
+            Schemas\Components\Section::make('Job Photos')->schema([
+                SpatieMediaLibraryFileUpload::make('before_photos')
+                    ->label('Before Photos')
+                    ->collection('before-photos')
+                    ->multiple()
+                    ->image()
+                    ->columnSpanFull(),
+                SpatieMediaLibraryFileUpload::make('after_photos')
+                    ->label('After Photos')
+                    ->collection('after-photos')
+                    ->multiple()
+                    ->image()
+                    ->columnSpanFull(),
+            ]),
+
+            Schemas\Components\Section::make('Capture Photo')->schema([
+                TakePicture::make('job_photo')
+                    ->label('Take a Job Photo')
+                    ->disk('public')
+                    ->directory('job-photos')
+                    ->visibility('public')
+                    ->showCameraSelector(true)
+                    ->columnSpanFull(),
+            ]),
         ]);
     }
 
@@ -129,13 +154,13 @@ class JobResource extends Resource
                 TextEntry::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'scheduled'   => 'info',
-                        'en_route'    => 'warning',
+                        'scheduled' => 'info',
+                        'en_route' => 'warning',
                         'in_progress' => 'warning',
-                        'completed'   => 'success',
-                        'cancelled'   => 'danger',
-                        'on_hold'     => 'gray',
-                        default       => 'gray',
+                        'completed' => 'success',
+                        'cancelled' => 'danger',
+                        'on_hold' => 'gray',
+                        default => 'gray',
                     }),
                 TextEntry::make('customer.full_name')->label('Customer'),
                 TextEntry::make('property.address_line1')->label('Property'),
@@ -172,13 +197,13 @@ class JobResource extends Resource
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'scheduled'   => 'info',
-                        'en_route'    => 'warning',
+                        'scheduled' => 'info',
+                        'en_route' => 'warning',
                         'in_progress' => 'warning',
-                        'completed'   => 'success',
-                        'cancelled'   => 'danger',
-                        'on_hold'     => 'gray',
-                        default       => 'gray',
+                        'completed' => 'success',
+                        'cancelled' => 'danger',
+                        'on_hold' => 'gray',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => Job::statuses()[$state] ?? $state),
             ])
@@ -187,8 +212,7 @@ class JobResource extends Resource
                     ->options(Job::statuses()),
                 SelectFilter::make('assigned_to')
                     ->label('Technician')
-                    ->relationship('assignedTechnician', 'name', fn (Builder $query) =>
-                        $query->where('organization_id', auth()->user()?->organization_id)
+                    ->relationship('assignedTechnician', 'name', fn (Builder $query) => $query->where('organization_id', auth()->user()?->organization_id)
                     )
                     ->placeholder('All technicians'),
             ])
@@ -216,10 +240,10 @@ class JobResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListJobs::route('/'),
+            'index' => Pages\ListJobs::route('/'),
             'create' => Pages\CreateJob::route('/create'),
-            'edit'   => Pages\EditJob::route('/{record}/edit'),
-            'view'   => Pages\ViewJob::route('/{record}'),
+            'edit' => Pages\EditJob::route('/{record}/edit'),
+            'view' => Pages\ViewJob::route('/{record}'),
         ];
     }
 

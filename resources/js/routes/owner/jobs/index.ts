@@ -380,26 +380,26 @@ destroy.delete = (args: { job: number | { id: number } } | [job: number | { id: 
 })
 
 /**
-* @see \App\Http\Controllers\Owner\JobController::status
+* @see \App\Http\Controllers\Owner\JobController::updateStatus
  * @see app/Http/Controllers/Owner/JobController.php:145
  * @route '/owner/jobs/{job}/status'
  */
-export const status = (args: { job: number | { id: number } } | [job: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: status.url(args, options),
+export const updateStatus = (args: { job: number | { id: number } } | [job: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus.url(args, options),
     method: 'patch',
 })
 
-status.definition = {
+updateStatus.definition = {
     methods: ["patch"],
     url: '/owner/jobs/{job}/status',
 } satisfies RouteDefinition<["patch"]>
 
 /**
-* @see \App\Http\Controllers\Owner\JobController::status
+* @see \App\Http\Controllers\Owner\JobController::updateStatus
  * @see app/Http/Controllers/Owner/JobController.php:145
  * @route '/owner/jobs/{job}/status'
  */
-status.url = (args: { job: number | { id: number } } | [job: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+updateStatus.url = (args: { job: number | { id: number } } | [job: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { job: args }
     }
@@ -422,18 +422,18 @@ status.url = (args: { job: number | { id: number } } | [job: number | { id: numb
                 : args.job,
                 }
 
-    return status.definition.url
+    return updateStatus.definition.url
             .replace('{job}', parsedArgs.job.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
-* @see \App\Http\Controllers\Owner\JobController::status
+* @see \App\Http\Controllers\Owner\JobController::updateStatus
  * @see app/Http/Controllers/Owner/JobController.php:145
  * @route '/owner/jobs/{job}/status'
  */
-status.patch = (args: { job: number | { id: number } } | [job: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: status.url(args, options),
+updateStatus.patch = (args: { job: number | { id: number } } | [job: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus.url(args, options),
     method: 'patch',
 })
 
@@ -560,7 +560,7 @@ show: Object.assign(show, show),
 edit: Object.assign(edit, edit),
 update: Object.assign(update, update),
 destroy: Object.assign(destroy, destroy),
-status: Object.assign(status, status),
+updateStatus: Object.assign(updateStatus, updateStatus),
 reschedule: Object.assign(reschedule, reschedule),
 reassign: Object.assign(reassign, reassign),
 invoice: Object.assign(invoice, invoice),
