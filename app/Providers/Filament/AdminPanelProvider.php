@@ -34,7 +34,9 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Slate,
             ])
             ->login()
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->resources([
+                \App\Filament\Resources\OrganizationSettingResource::class,
+            ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
@@ -57,6 +59,13 @@ class AdminPanelProvider extends PanelProvider
             ->plugin(
                 \Modules\Accountings\Filament\Plugin\AccountingsPlugin::make()
             )
+            ->plugin(\Modules\WorksuiteWorkOrders\Filament\Plugin\WorksuitePlugin::make())
+            ->plugin(\Modules\ZeroFuss\Filament\Plugin\ZeroFussPlugin::make())
+            ->plugin(\Modules\ZeroPay\Filament\Plugin\ZeroPayPlugin::make())
+            ->plugin(\Modules\HRCore\Filament\Plugin\HRCorePlugin::make())
+            ->plugin(\Modules\GroundZero\Filament\Plugin\GroundZeroPlugin::make())
+            ->plugin(\Modules\TitanVault\Filament\Plugin\TitanVaultPlugin::make())
+            ->plugin(\Modules\TitanStudio\Filament\Plugin\TitanStudioPlugin::make())
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
