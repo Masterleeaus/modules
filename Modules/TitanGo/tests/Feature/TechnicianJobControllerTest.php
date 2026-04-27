@@ -46,6 +46,8 @@ test('guest cannot fetch today jobs', function () {
 test('technician can update job status to in_progress', function () {
     [$tech, $job] = technicianWithJob();
 
+    $job->update(['status' => Job::STATUS_EN_ROUTE]);
+
     $this->actingAs($tech)
         ->patchJson("/api/v1/technician/jobs/{$job->id}/status", ['status' => 'in_progress'])
         ->assertOk()

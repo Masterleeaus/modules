@@ -12,6 +12,7 @@ use App\Models\Customer;
 use App\Models\Job;
 use App\Models\JobType;
 use App\Models\User;
+use App\Workflow\Exceptions\InvalidTransitionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -148,7 +149,13 @@ class JobController extends Controller
             'status' => ['required', Rule::in(array_keys(Job::statuses()))],
         ]);
 
-        app(UpdateJobStatusAction::class)->execute($job, $request->status);
+        try {
+            app(UpdateJobStatusAction::class)->execute($job, $request->status);
+        } catch (InvalidTransitionException $e) {
+            return redirect()->back()->withErrors(['status' => $e->getMessage()]);
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->withErrors(['status' => $e->getMessage()]);
+        }
 
         return redirect()->back()->with('success', 'Status updated.');
     }

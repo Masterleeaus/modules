@@ -30,6 +30,8 @@ function syncTechWithJob(): array
 test('technician can batch sync status and notes mutations', function () {
     [$tech, $job] = syncTechWithJob();
 
+    $job->update(['status' => Job::STATUS_EN_ROUTE]);
+
     $this->actingAs($tech)
         ->postJson('/api/v1/technician/sync', [
             'mutations' => [

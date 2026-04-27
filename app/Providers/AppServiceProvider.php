@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\DetectStuckWorkflows;
 use App\Console\Commands\Modules\InstallModuleCommand;
 use App\Console\Commands\Modules\ModuleStatusCommand;
 use App\Console\Commands\Modules\UpgradeModuleCommand;
@@ -50,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                DetectStuckWorkflows::class,
                 InstallModuleCommand::class,
                 UpgradeModuleCommand::class,
                 VerifyModuleCommand::class,
