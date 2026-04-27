@@ -61,7 +61,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])
         Route::get('/dashboard', [PlatformDashboardController::class, 'index'])->name('dashboard');
         Route::patch('/organizations/{organization}', [PlatformDashboardController::class, 'updateOrganization'])->name('organizations.update');
         Route::patch('/organizations/{organization}/subscription', [PlatformDashboardController::class, 'updateSubscription'])->name('organizations.subscription.update');
-        Route::post('/organizations/{organization}/extend-trial', [PlatformDashboardController::class, 'extendTrial'])->name('organizations.extend-trial');
+        Route::post('/organizations/{organization}/extend-trial', [PlatformDashboardController::class, 'extendTrial'])->name('organizations.extend_trial');
         Route::post('/organizations/{organization}/activate', [PlatformDashboardController::class, 'activate'])->name('organizations.activate');
     });
 // ── Subscription routes — outside subscription middleware so expired users can reach them ──
@@ -82,8 +82,8 @@ Route::middleware(['auth', 'verified', 'role:owner|admin'])
     ->group(function () {
         Route::get('/setup', [SetupController::class, 'show'])->name('setup');
         Route::post('/setup/company', [SetupController::class, 'saveCompany'])->name('setup.company');
-        Route::post('/setup/job-types', [SetupController::class, 'addJobType'])->name('setup.job-types.store');
-        Route::delete('/setup/job-types/{jobType}', [SetupController::class, 'removeJobType'])->name('setup.job-types.destroy');
+        Route::post('/setup/job-types', [SetupController::class, 'addJobType'])->name('setup.job_types.store');
+        Route::delete('/setup/job-types/{jobType}', [SetupController::class, 'removeJobType'])->name('setup.job_types.destroy');
         Route::post('/setup/technicians', [SetupController::class, 'addTechnician'])->name('setup.technicians.store');
         Route::post('/setup/complete', [SetupController::class, 'complete'])->name('setup.complete');
     });
@@ -113,7 +113,7 @@ Route::middleware(['auth', 'verified', 'role:owner|admin|dispatcher|bookkeeper',
         Route::delete('/properties/{property}', [PropertyController::class, 'destroy'])->name('properties.destroy');
 
         Route::resource('jobs', JobController::class);
-        Route::patch('/jobs/{job}/status', [JobController::class, 'updateStatus'])->name('jobs.status');
+        Route::patch('/jobs/{job}/status', [JobController::class, 'updateStatus'])->name('jobs.update_status');
         Route::patch('/jobs/{job}/reschedule', [JobController::class, 'reschedule'])->name('jobs.reschedule');
         Route::patch('/jobs/{job}/reassign', [JobController::class, 'reassign'])->name('jobs.reassign');
 
@@ -132,9 +132,9 @@ Route::middleware(['auth', 'verified', 'role:owner|admin|dispatcher|bookkeeper',
 
         // Reporting
         Route::get('/dashboard', [ReportingController::class, 'dashboard'])->name('dashboard');
-        Route::get('/reports/jobs-by-type', [ReportingController::class, 'jobsByType'])->name('reports.jobs-by-type');
-        Route::get('/reports/job-profitability', [ReportingController::class, 'jobProfitability'])->name('reports.job-profitability');
-        Route::get('/reports/technician-performance', [ReportingController::class, 'technicianPerformance'])->name('reports.technician-performance');
+        Route::get('/reports/jobs-by-type', [ReportingController::class, 'jobsByType'])->name('reports.jobs_by_type');
+        Route::get('/reports/job-profitability', [ReportingController::class, 'jobProfitability'])->name('reports.job_profitability');
+        Route::get('/reports/technician-performance', [ReportingController::class, 'technicianPerformance'])->name('reports.technician_performance');
 
         // Company & integration settings
         Route::get('/settings/company', [SettingsController::class, 'company'])->name('settings.company');
@@ -150,9 +150,9 @@ Route::middleware(['auth', 'verified', 'role:owner|admin|dispatcher|bookkeeper',
     });
 
 // Public estimate page — no auth required
-Route::get('/estimates/{token}', [PublicEstimateController::class, 'show'])->name('estimates.public');
-Route::post('/estimates/{token}/accept', [PublicEstimateController::class, 'accept'])->name('estimates.accept');
-Route::post('/estimates/{token}/decline', [PublicEstimateController::class, 'decline'])->name('estimates.decline');
+Route::get('/estimates/{token}', [PublicEstimateController::class, 'show'])->name('public.estimates.show');
+Route::post('/estimates/{token}/accept', [PublicEstimateController::class, 'accept'])->name('public.estimates.accept');
+Route::post('/estimates/{token}/decline', [PublicEstimateController::class, 'decline'])->name('public.estimates.decline');
 
 Route::middleware(['auth', 'role:technician'])
     ->prefix('technician')
@@ -200,7 +200,7 @@ require __DIR__.'/auth.php';
 
 // ── Client Portal — magic-link authentication ─────────────────────────────
 Route::prefix('client')
-    ->name('client.')
+    ->name('portal.')
     ->group(function () {
         Route::get('/login', [ClientPortalController::class, 'showLogin'])->name('login');
         Route::post('/login', [ClientPortalController::class, 'sendMagicLink'])->name('login.send');
@@ -210,5 +210,5 @@ Route::prefix('client')
     });
 
 // ── Job Review & Tip — post-payment redirect ──────────────────────────────
-Route::get('/review/{token}', [JobReviewController::class, 'show'])->name('review.show');
-Route::post('/review/{token}', [JobReviewController::class, 'store'])->name('review.store');
+Route::get('/review/{token}', [JobReviewController::class, 'show'])->name('public.reviews.show');
+Route::post('/review/{token}', [JobReviewController::class, 'store'])->name('public.reviews.store');

@@ -38,7 +38,7 @@ class ClientPortalController extends Controller
                 'expires_at'  => now()->addHours(24),
             ]);
 
-            $url = route('client.auth', ['token' => $token->token]);
+            $url = route('portal.auth', ['token' => $token->token]);
 
             \Illuminate\Support\Facades\Mail::raw(
                 "Click this link to access your client portal (expires in 24 hours):\n\n{$url}",
@@ -61,14 +61,14 @@ class ClientPortalController extends Controller
             ->first();
 
         if (! $portalToken) {
-            return redirect()->route('client.login')->withErrors(['token' => 'This link has expired or already been used.']);
+            return redirect()->route('portal.login')->withErrors(['token' => 'This link has expired or already been used.']);
         }
 
         $portalToken->update(['used_at' => now()]);
 
         session(['client_portal_customer_id' => $portalToken->customer_id]);
 
-        return redirect()->route('client.dashboard');
+        return redirect()->route('portal.dashboard');
     }
 
     /**
@@ -79,7 +79,7 @@ class ClientPortalController extends Controller
         $customer = $this->resolveCustomer($request);
 
         if (! $customer) {
-            return redirect()->route('client.login');
+            return redirect()->route('portal.login');
         }
 
         $upcomingJobs = Job::where('customer_id', $customer->id)
@@ -117,7 +117,7 @@ class ClientPortalController extends Controller
     public function logout(Request $request): RedirectResponse
     {
         $request->session()->forget('client_portal_customer_id');
-        return redirect()->route('client.login');
+        return redirect()->route('portal.login');
     }
 
     private function resolveCustomer(Request $request): ?Customer

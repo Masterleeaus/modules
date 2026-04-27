@@ -17,49 +17,35 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Modules\ZeroPay\Filament\Plugin\ZeroPayPlugin;
 
 /**
- * ZEROPAY — Zero-Fee Payments + AI Follow-up PWA
+ * ZEROPAY — Invoicing, Payments & Cashflow panel
  *
- * Audience: Customers paying + admin managing collections
- * Type: PWA — installable on phone / web, payment integration
+ * Audience: Bookkeepers and finance operators
+ * Roles: bookkeeper, owner, admin
  *
- * Features:
- * - Payment link sending (SMS, email, portal)
- * - Multiple payment methods (PayID, bank, card)
- * - Zero transaction fees (company side)
- * - AI-powered late payment follow-up sequences
- * - Payment attempt tracking
- * - Reconciliation assistance
- * - AI follow-up automation (Day 3 SMS → Day 7 email → Day 14 call script → Day 21 plan → Day 30 escalation)
+ * Surfaces the full billing lifecycle:
+ *   Estimates → Invoices → Payments → Cashflow
  */
 class ZeroPayPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->id('zeropay')
-            ->path('zeropay')
-            ->brandName('ZEROPAY — Payments')
+            ->id('zero-pay')
+            ->path('zero-pay')
+            ->brandName('ZeroPay')
             ->colors([
                 'primary' => Color::Emerald,
             ])
             ->login()
-            ->discoverResources(
-                in: app_path('Filament/ZeroPay/Resources'),
-                for: 'App\\Filament\\ZeroPay\\Resources'
-            )
-            ->discoverPages(
-                in: app_path('Filament/ZeroPay/Pages'),
-                for: 'App\\Filament\\ZeroPay\\Pages'
-            )
+            ->plugins([
+                ZeroPayPlugin::make(),
+            ])
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->discoverWidgets(
-                in: app_path('Filament/ZeroPay/Widgets'),
-                for: 'App\\Filament\\ZeroPay\\Widgets'
-            )
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
