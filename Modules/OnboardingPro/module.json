@@ -1,0 +1,34 @@
+{
+  "name": "OnboardingPro",
+  "alias": "onboardingpro",
+  "description": "Guided user onboarding — banners, surveys, introduction styles, completion tracking.",
+  "keywords": ["onboarding", "banner", "survey", "wizard"],
+  "active": 1,
+  "order": 0,
+  "version": "1.4.0",
+  "providers": [
+    "Modules\\OnboardingPro\\Providers\\OnboardingProServiceProvider"
+  ],
+  "aliases": {},
+  "files": [],
+  "requires": [],
+  "permissions": [
+    "view_onboarding",
+    "manage_onboarding"
+  ],
+  "roles_permissions": {
+    "admin": ["view_onboarding", "manage_onboarding"],
+    "manager": ["view_onboarding"],
+    "employee": ["view_onboarding"],
+    "client": ["view_onboarding"]
+  },
+  "menus": [
+    {
+      "panel": "admin",
+      "label": "Onboarding",
+      "route": "onboardingpro.admin.banners.index",
+      "sort_order": 80
+    }
+  ],
+  "sidebar_menu": true
+}

@@ -1,0 +1,21 @@
+{
+    "name": "TitanVault",
+    "alias": "titan_vault",
+    "description": "TitanVault — Centralised, versioned document vault with client-facing proof review workflows.",
+    "keywords": ["vault", "documents", "proof", "review", "approvals", "versioning"],
+    "permissions": [
+        "view_vault_documents",
+        "add_vault_documents",
+        "edit_vault_documents",
+        "delete_vault_documents",
+        "manage_vault_settings"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\TitanVault\\Providers\\TitanVaultServiceProvider",
+        "Modules\\TitanVault\\Providers\\EventServiceProvider",
+        "Modules\\TitanVault\\Providers\\RouteServiceProvider"
+    ],
+    "files": [],
+    "version": "1.0.0"
+}

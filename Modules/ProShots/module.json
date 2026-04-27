@@ -1,0 +1,35 @@
+{
+    "name": "ProShots",
+    "alias": "proshots",
+    "description": "ProShots — Professional AI product photography with before/after transformations using the Pebblely API. Upload raw product photos and get studio-quality 2048×2048 output for catalogues, print, and client presentations.",
+    "keywords": ["ai", "product", "photography", "pebblely", "background-removal", "studio"],
+    "priority": 0,
+    "version": "2.0.0",
+    "active": 1,
+    "requires": [],
+    "providers": [
+        "Modules\\ProShots\\Providers\\ProShotsServiceProvider",
+        "Modules\\ProShots\\Providers\\RouteServiceProvider"
+    ],
+    "files": [],
+    "permissions": [
+        "use_proshots",
+        "manage_proshots_settings"
+    ],
+    "roles_permissions": {
+        "admin": [
+            "use_proshots",
+            "manage_proshots_settings"
+        ]
+    },
+    "menus": [
+        {
+            "panel": "user",
+            "label": "ProShots",
+            "route": "proshots.index",
+            "sort_order": 150,
+            "group": "AI Tools"
+        }
+    ],
+    "sidebar_menu": true
+}
