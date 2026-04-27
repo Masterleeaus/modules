@@ -12,7 +12,7 @@ class DispatchService
 {
     /**
      * Return the latest location, current job, and upcoming jobs for every
-     * technician in the given organisation.
+     * technician in the given organization.
      *
      * @return array{data: Collection<int, array<string, mixed>>}
      */
@@ -82,7 +82,7 @@ class DispatchService
                     'latitude'    => (float) $location->latitude,
                     'longitude'   => (float) $location->longitude,
                     'heading'     => $location->heading !== null ? (float) $location->heading : null,
-                    'recorded_at' => $location->recorded_at->toISOString(),
+                    'recorded_at' => $location->recorded_at->toIso8601String(),
                 ] : null,
                 'current_job'   => $currentJob ? $this->formatJob($currentJob) : null,
                 'upcoming_jobs' => $upcomingJobs->map(fn ($j) => $this->formatJob($j))->values(),
@@ -118,7 +118,7 @@ class DispatchService
             'id'           => $job->id,
             'title'        => $job->title,
             'status'       => $job->status,
-            'scheduled_at' => $job->scheduled_at?->toISOString(),
+            'scheduled_at' => $job->scheduled_at?->toIso8601String(),
             'customer'     => $job->customer
                 ? "{$job->customer->first_name} {$job->customer->last_name}"
                 : null,
