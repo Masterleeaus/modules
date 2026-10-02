@@ -32,8 +32,8 @@ return new class extends Migration
             $table->index(['organization_id', 'start_date']);
         });
 
-        // Add recurrence_rule to field_jobs for one-off overrides
-        Schema::table('field_jobs', function (Blueprint $table) {
+        // Add recurring_template_id to cleaning_jobs to link one-off jobs to their recurring template
+        Schema::table('cleaning_jobs', function (Blueprint $table) {
             $table->unsignedBigInteger('recurring_template_id')->nullable()->after('estimate_id');
             $table->foreign('recurring_template_id')->references('id')->on('recurring_job_templates')->nullOnDelete();
         });
@@ -59,7 +59,7 @@ return new class extends Migration
         });
 
         // E: Automated Client Reminders
-        Schema::table('field_jobs', function (Blueprint $table) {
+        Schema::table('cleaning_jobs', function (Blueprint $table) {
             $table->timestamp('reminder_sent_24h_at')->nullable()->after('cancelled_at');
             $table->timestamp('reminder_sent_2h_at')->nullable()->after('reminder_sent_24h_at');
         });
@@ -83,7 +83,7 @@ return new class extends Migration
         // G: Supply / Inventory Tracking
         Schema::create('job_supply_usages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('job_id')->constrained('field_jobs')->cascadeOnDelete();
+            $table->foreignId('job_id')->constrained('cleaning_jobs')->cascadeOnDelete();
             $table->foreignId('item_id')->constrained()->cascadeOnDelete();
             $table->decimal('quantity_used', 10, 3)->default(1);
             $table->text('notes')->nullable();
@@ -96,7 +96,7 @@ return new class extends Migration
         // H: Tipping & Rating
         Schema::create('job_reviews', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('job_id')->constrained('field_jobs')->cascadeOnDelete();
+            $table->foreignId('job_id')->constrained('cleaning_jobs')->cascadeOnDelete();
             $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('technician_id')->nullable()->constrained('users')->nullOnDelete();
             $table->unsignedTinyInteger('rating'); // 1-5
@@ -111,7 +111,7 @@ return new class extends Migration
         // I: Crew / Multi-Technician Jobs
         Schema::create('job_crew', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('job_id')->constrained('field_jobs')->cascadeOnDelete();
+            $table->foreignId('job_id')->constrained('cleaning_jobs')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('role', 30)->default('support'); // lead, support
             $table->timestamps();
@@ -132,7 +132,7 @@ return new class extends Migration
         Schema::table('customers', function (Blueprint $table) {
             $table->dropColumn('reminder_preference');
         });
-        Schema::table('field_jobs', function (Blueprint $table) {
+        Schema::table('cleaning_jobs', function (Blueprint $table) {
             $table->dropColumn(['reminder_sent_24h_at', 'reminder_sent_2h_at', 'recurring_template_id']);
         });
         Schema::table('attachments', function (Blueprint $table) {

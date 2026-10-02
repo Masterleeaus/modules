@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('field_jobs', function (Blueprint $table) {
+        Schema::table('cleaning_jobs', function (Blueprint $table) {
             $table->foreignId('estimate_id')
                 ->nullable()
                 ->after('job_type_id')
@@ -19,7 +19,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('field_jobs', function (Blueprint $table) {
+        Schema::table('cleaning_jobs', function (Blueprint $table) {
             $table->dropForeignIdFor(\App\Models\Estimate::class);
             $table->dropColumn('estimate_id');
         });

@@ -17,7 +17,7 @@ class Job extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, SoftDeletes, TenantScoped;
 
-    protected $table = 'field_jobs';
+    protected $table = 'cleaning_jobs';
 
     const STATUS_SCHEDULED = 'scheduled';
 

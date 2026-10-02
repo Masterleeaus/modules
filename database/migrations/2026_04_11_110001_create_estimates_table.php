@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('organization_id')->constrained()->cascadeOnDelete();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('job_id')->nullable()->constrained('field_jobs')->nullOnDelete();
+            $table->foreignId('job_id')->nullable()->constrained('cleaning_jobs')->nullOnDelete();
             $table->string('estimate_number')->nullable();
             $table->string('title');
             $table->text('intro')->nullable();        // shown on public page above packages
