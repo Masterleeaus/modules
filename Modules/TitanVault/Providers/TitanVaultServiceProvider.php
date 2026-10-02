@@ -11,6 +11,7 @@ class TitanVaultServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->registerConfig();
+        $this->app->singleton('titan-vault.filament.plugin', fn () => \Modules\TitanVault\Filament\Plugin\TitanVaultPlugin::make());
     }
 
     public function boot(): void

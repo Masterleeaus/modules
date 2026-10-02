@@ -5,6 +5,7 @@ namespace Modules\GroundZero\Filament\Plugin;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Modules\GroundZero\Filament\Pages\DispatchBoardPage;
+use Modules\GroundZero\Filament\Resources\DriverLocationResource;
 use Modules\GroundZero\Filament\Widgets\DispatchStatsWidget;
 
 class GroundZeroPlugin implements Plugin
@@ -27,7 +28,8 @@ class GroundZeroPlugin implements Plugin
             ])
             ->widgets([
                 DispatchStatsWidget::class,
-            ]);
+            ])
+            ->resources([DriverLocationResource::class]);
     }
 
     public function boot(Panel $panel): void

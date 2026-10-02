@@ -60,6 +60,7 @@ class HRCoreServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->app->register(FilamentServiceProvider::class);
 
         // Register module settings
         $this->app->singleton('hrcore.settings', function () {

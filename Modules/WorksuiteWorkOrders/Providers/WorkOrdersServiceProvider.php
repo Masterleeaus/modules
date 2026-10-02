@@ -8,6 +8,7 @@ class WorkOrdersServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->register(FilamentServiceProvider::class);
         $this->mergeConfigFrom(__DIR__.'/../Config/config.php', 'workorders');
         if ($this->app->runningInConsole()) {
             $this->commands([

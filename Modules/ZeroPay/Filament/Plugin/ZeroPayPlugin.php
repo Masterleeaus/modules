@@ -11,8 +11,10 @@ use Modules\ZeroPay\Filament\Pages\MarginAnalysisPage;
 use Modules\ZeroPay\Filament\Pages\OverdueInvoicesPage;
 use Modules\ZeroPay\Filament\Pages\ReminderSchedulePage;
 use Modules\ZeroPay\Filament\Pages\XeroSyncPage;
+use Modules\ZeroPay\Filament\Resources\EstimatePackageResource;
 use Modules\ZeroPay\Filament\Resources\EstimateResource;
 use Modules\ZeroPay\Filament\Resources\InvoiceResource;
+use Modules\ZeroPay\Filament\Resources\ItemResource;
 use Modules\ZeroPay\Filament\Resources\PaymentResource;
 use Modules\ZeroPay\Filament\Widgets\CashStateWidget;
 use Modules\ZeroPay\Filament\Widgets\MarginWarningWidget;
@@ -39,6 +41,8 @@ class ZeroPayPlugin implements Plugin
                 EstimateResource::class,
                 InvoiceResource::class,
                 PaymentResource::class,
+                ItemResource::class,
+                EstimatePackageResource::class,
             ])
             ->pages([
                 CashflowDashboardPage::class,
