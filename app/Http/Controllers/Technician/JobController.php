@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Technician;
 
+use App\Actions\Jobs\UpdateJobStatusAction;
 use App\Events\JobStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Models\Attachment;
@@ -9,6 +10,7 @@ use App\Models\Item;
 use App\Models\Job;
 use App\Models\JobChecklistItem;
 use App\Models\JobLineItem;
+use App\Workflow\Exceptions\InvalidTransitionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -83,19 +85,13 @@ class JobController extends Controller
             'status' => ['required', Rule::in($allowedStatuses)],
         ]);
 
-        $timestamps = match ($request->status) {
-            Job::STATUS_IN_PROGRESS => [
-                'arrived_at' => $job->arrived_at ?? now(),
-                'started_at' => $job->started_at ?? now(),
-            ],
-            Job::STATUS_COMPLETED => ['completed_at' => now()],
-            default => [],
-        };
-
-        $oldStatus = $job->status;
-        $job->update(['status' => $request->status, ...$timestamps]);
-
-        JobStatusChanged::dispatch($job->fresh(), $oldStatus, $request->status);
+        try {
+            app(UpdateJobStatusAction::class)->execute($job, $request->status);
+        } catch (InvalidTransitionException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        } catch (\RuntimeException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
 
         return response()->json(['status' => 'ok', 'data' => $job->fresh()]);
     }

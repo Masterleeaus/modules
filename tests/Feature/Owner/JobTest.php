@@ -167,7 +167,7 @@ test('user can update a job', function () {
 
 test('user can update job status', function () {
     [$user, $org, $customer] = userOrgCustomer();
-    $job = Job::factory()->forCustomer($customer)->scheduled()->create();
+    $job = Job::factory()->forCustomer($customer)->create(['status' => Job::STATUS_EN_ROUTE]);
 
     $this->actingAs($user)
         ->patch("/owner/jobs/{$job->id}/status", ['status' => 'in_progress'])

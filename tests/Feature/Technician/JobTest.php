@@ -284,9 +284,10 @@ test('en_route does not stamp arrived_at', function () {
 test('updating status to in_progress sets both arrived_at and started_at', function () {
     [$technician, , $customer] = techJobSetup();
 
-    $job = Job::factory()->forCustomer($customer)->scheduled()->create([
+    $job = Job::factory()->forCustomer($customer)->create([
         'assigned_to'  => $technician->id,
         'scheduled_at' => now(),
+        'status'       => Job::STATUS_EN_ROUTE,
     ]);
 
     $this->actingAs($technician)
