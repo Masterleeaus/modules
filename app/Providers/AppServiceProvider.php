@@ -21,6 +21,11 @@ use App\Services\MessageDispatcher;
 use App\Services\SmsService;
 use App\Services\TemplateRenderer;
 use App\Services\TwilioSmsService;
+use App\Signals\SignalDispatcher;
+use App\Signals\SignalGovernor;
+use App\Signals\SignalRegistry;
+use App\Signals\SignalRouter;
+use App\Signals\SignalValidator;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -42,6 +47,13 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(TemplateRenderer::class);
+
+        // Signal Engine singletons
+        $this->app->singleton(SignalRegistry::class);
+        $this->app->singleton(SignalValidator::class);
+        $this->app->singleton(SignalGovernor::class);
+        $this->app->singleton(SignalDispatcher::class);
+        $this->app->singleton(SignalRouter::class);
     }
 
     public function boot(): void
@@ -59,9 +71,15 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(EstimateSent::class, SendEstimateNotification::class);
         Event::listen(InvoiceSent::class, SendInvoiceNotification::class);
+
+        // Listeners for core job events (dispatched directly by Action classes;
+        // the Signal Engine records these as signals alongside the direct dispatch).
         Event::listen(JobCreated::class, HandleJobCreatedSendEmailConfirmation::class);
         Event::listen(JobCreated::class, HandleJobCreatedSendSmsConfirmation::class);
         Event::listen(JobStatusChanged::class, HandleJobStatusChangedSendNotifications::class);
+
+        // Register Signal Engine dispatch handlers for external / custom signals.
+        $this->registerSignalHandlers();
 
         if (class_exists(\TomatoPHP\FilamentCms\Facades\FilamentCMS::class)
             && class_exists(\TomatoPHP\FilamentCms\Services\Contracts\CmsType::class)) {
@@ -80,5 +98,13 @@ class AppServiceProvider extends ServiceProvider
                     ->color('warning'),
             ]);
         }
+    }
+
+    private function registerSignalHandlers(): void
+    {
+        // Internal events (job.created, job.status_changed, payment.received) are dispatched
+        // directly by their Action classes — no Signal Engine handler needed for them.
+        // Register handlers here for any external or custom signals that require the Signal
+        // Engine to drive the dispatch (e.g. webhook signals, AI inference results, etc.).
     }
 }
